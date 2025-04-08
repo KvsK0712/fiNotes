@@ -5,14 +5,42 @@ import PageLayout from "@/components/layout/PageLayout";
 import { ArrowDown, ArrowUp, DollarSign, PiggyBank, Target } from "lucide-react";
 import { Link } from "react-router-dom";
 
+interface Transaction {
+  id: string;
+  title: string;
+  amount: number;
+  type: "income" | "expense";
+  category: string;
+  date: string;
+}
+
+const STORAGE_KEY = "pocket_wise_transactions";
+
 const HomePage = () => {
   const [username, setUsername] = useState<string>("");
   const [balance, setBalance] = useState<number>(0);
   
   useEffect(() => {
-    // In a real app, this would come from local storage or an API
+    // Set default username
     setUsername("User");
-    setBalance(12500);
+    
+    // Calculate balance from stored transactions
+    const savedTransactions = localStorage.getItem(STORAGE_KEY);
+    if (savedTransactions) {
+      const transactions: Transaction[] = JSON.parse(savedTransactions);
+      const totalIncome = transactions
+        .filter(t => t.type === "income")
+        .reduce((acc, t) => acc + t.amount, 0);
+      
+      const totalExpense = transactions
+        .filter(t => t.type === "expense")
+        .reduce((acc, t) => acc + t.amount, 0);
+        
+      setBalance(totalIncome - totalExpense);
+    } else {
+      // Set initial balance to 0 for new users
+      setBalance(0);
+    }
   }, []);
 
   const QuickActions = [
