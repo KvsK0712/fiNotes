@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import PageLayout from "@/components/layout/PageLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,41 +16,27 @@ interface Transaction {
   date: string;
 }
 
+const STORAGE_KEY = "pocket_wise_transactions";
+
 const TrackerPage = () => {
-  const [transactions, setTransactions] = useState<Transaction[]>([
-    {
-      id: "1",
-      title: "Salary",
-      amount: 5000,
-      type: "income",
-      category: "Salary",
-      date: "2025-04-01",
-    },
-    {
-      id: "2",
-      title: "Rent",
-      amount: 1200,
-      type: "expense",
-      category: "Housing",
-      date: "2025-04-03",
-    },
-    {
-      id: "3",
-      title: "Groceries",
-      amount: 85,
-      type: "expense",
-      category: "Food",
-      date: "2025-04-05",
-    },
-    {
-      id: "4",
-      title: "Freelance Project",
-      amount: 750,
-      type: "income",
-      category: "Freelance",
-      date: "2025-04-07",
-    },
-  ]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [isFirstVisit, setIsFirstVisit] = useState(true);
+
+  // Load transactions from localStorage on component mount
+  useEffect(() => {
+    const savedTransactions = localStorage.getItem(STORAGE_KEY);
+    if (savedTransactions) {
+      setTransactions(JSON.parse(savedTransactions));
+      setIsFirstVisit(false);
+    }
+  }, []);
+
+  // Save transactions to localStorage whenever they change
+  useEffect(() => {
+    if (!isFirstVisit || transactions.length > 0) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(transactions));
+    }
+  }, [transactions, isFirstVisit]);
 
   const totalIncome = transactions
     .filter((t) => t.type === "income")
@@ -87,39 +73,59 @@ const TrackerPage = () => {
           </Card>
         </div>
 
-        {/* Transactions List */}
-        <Tabs defaultValue="all">
-          <div className="flex items-center justify-between mb-4">
-            <TabsList>
-              <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="income">Income</TabsTrigger>
-              <TabsTrigger value="expense">Expense</TabsTrigger>
-            </TabsList>
+        {/* Empty state message */}
+        {transactions.length === 0 && (
+          <Card className="mb-6">
+            <CardContent className="p-6 text-center">
+              <h3 className="text-lg font-medium mb-2">Welcome to the Finance Tracker!</h3>
+              <p className="text-gray-500 mb-4">
+                Add your first income or expense to get started tracking your finances.
+              </p>
+              <Link to="/tracker/add">
+                <Button className="gap-1">
+                  <Plus size={16} />
+                  Add Transaction
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Transactions List - only show if there are transactions */}
+        {transactions.length > 0 && (
+          <Tabs defaultValue="all">
+            <div className="flex items-center justify-between mb-4">
+              <TabsList>
+                <TabsTrigger value="all">All</TabsTrigger>
+                <TabsTrigger value="income">Income</TabsTrigger>
+                <TabsTrigger value="expense">Expense</TabsTrigger>
+              </TabsList>
+              
+              <Link to="/tracker/add">
+                <Button size="sm" className="gap-1">
+                  <Plus size={16} />
+                  Add
+                </Button>
+              </Link>
+            </div>
             
-            <Link to="/tracker/add">
-              <Button size="sm" className="gap-1">
-                <Plus size={16} />
-                Add
-              </Button>
-            </Link>
-          </div>
-          
-          <TabsContent value="all" className="mt-0">
-            <TransactionList transactions={transactions} />
-          </TabsContent>
-          
-          <TabsContent value="income" className="mt-0">
-            <TransactionList 
-              transactions={transactions.filter(t => t.type === 'income')} 
-            />
-          </TabsContent>
-          
-          <TabsContent value="expense" className="mt-0">
-            <TransactionList 
-              transactions={transactions.filter(t => t.type === 'expense')} 
-            />
-          </TabsContent>
-        </Tabs>
+            <TabsContent value="all" className="mt-0">
+              <TransactionList transactions={transactions} />
+            </TabsContent>
+            
+            <TabsContent value="income" className="mt-0">
+              <TransactionList 
+                transactions={transactions.filter(t => t.type === 'income')} 
+              />
+            </TabsContent>
+            
+            <TabsContent value="expense" className="mt-0">
+              <TransactionList 
+                transactions={transactions.filter(t => t.type === 'expense')} 
+              />
+            </TabsContent>
+          </Tabs>
+        )}
       </div>
     </PageLayout>
   );

@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import PageLayout from "@/components/layout/PageLayout";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,6 +14,17 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { toast } from "sonner";
+
+interface Transaction {
+  id: string;
+  title: string;
+  amount: number;
+  type: "income" | "expense";
+  category: string;
+  date: string;
+}
+
+const STORAGE_KEY = "pocket_wise_transactions";
 
 const expenseCategories = [
   "Housing", "Food", "Transport", "Utilities", "Entertainment", 
@@ -31,6 +42,15 @@ const AddTransactionPage = () => {
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("");
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+
+  // Load existing transactions from localStorage
+  useEffect(() => {
+    const savedTransactions = localStorage.getItem(STORAGE_KEY);
+    if (savedTransactions) {
+      setTransactions(JSON.parse(savedTransactions));
+    }
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,7 +61,7 @@ const AddTransactionPage = () => {
       return;
     }
 
-    // In a real app, we'd save this to local storage or IndexedDB
+    // Create new transaction
     const newTransaction = {
       id: Date.now().toString(),
       title,
@@ -51,7 +71,11 @@ const AddTransactionPage = () => {
       date,
     };
 
-    console.log("Adding transaction:", newTransaction);
+    // Add to existing transactions
+    const updatedTransactions = [...transactions, newTransaction];
+    
+    // Save to localStorage
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedTransactions));
     
     // Show success message
     toast.success(`${type === 'income' ? 'Income' : 'Expense'} added successfully!`);
