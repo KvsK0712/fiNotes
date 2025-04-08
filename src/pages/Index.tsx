@@ -1,8 +1,8 @@
 
-import HomePage from "./HomePage";
+import App from "../App";
 
 const Index = () => {
-  return <HomePage />;
+  return <App />;
 };
 
 export default Index;
