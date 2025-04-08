@@ -4,8 +4,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { ChevronRight, Moon, Sun, User, Bell, Lock, Laptop, Delete } from "lucide-react";
+import { ChevronRight, Moon, Sun, Bell, Lock, Laptop, Delete } from "lucide-react";
 import { useState } from "react";
+import UserProfile from "@/components/profile/UserProfile";
 
 const SettingsPage = () => {
   const [darkMode, setDarkMode] = useState(false);
@@ -14,6 +15,12 @@ const SettingsPage = () => {
   return (
     <PageLayout title="Settings">
       <div className="finance-container animate-fade-in space-y-6">
+        {/* Profile Section */}
+        <div className="space-y-4">
+          <h2 className="text-lg font-medium">Profile</h2>
+          <UserProfile />
+        </div>
+        
         <div className="space-y-4">
           <h2 className="text-lg font-medium">Appearance</h2>
           <Card>
@@ -61,11 +68,10 @@ const SettingsPage = () => {
         </div>
         
         <div className="space-y-4">
-          <h2 className="text-lg font-medium">Account</h2>
+          <h2 className="text-lg font-medium">App Preferences</h2>
           <Card>
             <CardContent className="p-0">
               <div className="divide-y divide-gray-200 dark:divide-gray-700">
-                <SettingItem icon={User} label="Profile Settings" />
                 <SettingItem icon={Lock} label="Privacy & Security" />
                 <SettingItem icon={Laptop} label="App Preferences" />
               </div>

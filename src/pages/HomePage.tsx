@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import PageLayout from "@/components/layout/PageLayout";
 import { ArrowDown, ArrowUp, DollarSign, PiggyBank, Target } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 
 interface Transaction {
   id: string;
@@ -17,13 +18,10 @@ interface Transaction {
 const STORAGE_KEY = "pocket_wise_transactions";
 
 const HomePage = () => {
-  const [username, setUsername] = useState<string>("");
+  const { userData } = useAuth();
   const [balance, setBalance] = useState<number>(0);
   
   useEffect(() => {
-    // Set default username
-    setUsername("User");
-    
     // Calculate balance from stored transactions
     const savedTransactions = localStorage.getItem(STORAGE_KEY);
     if (savedTransactions) {
@@ -42,6 +40,9 @@ const HomePage = () => {
       setBalance(0);
     }
   }, []);
+
+  // Get currency symbol from user data
+  const currencySymbol = userData?.currency || "$";
 
   const QuickActions = [
     { name: "Add Expense", icon: ArrowDown, color: "bg-red-100 text-red-600", path: "/tracker/add" },
@@ -79,7 +80,7 @@ const HomePage = () => {
         {/* Header/Welcome Section */}
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
-            Hello, {username}
+            Hello, {userData?.name || "User"}
           </h1>
           <p className="text-gray-600 dark:text-gray-300 mt-1">
             Welcome to your financial dashboard
@@ -91,7 +92,7 @@ const HomePage = () => {
           <CardContent className="p-6">
             <p className="text-sm opacity-80 mb-1">Current Balance</p>
             <div className="flex items-baseline">
-              <DollarSign className="mr-1" size={24} />
+              <span className="mr-1 text-xl">{currencySymbol}</span>
               <span className="text-3xl font-bold">{balance.toLocaleString()}</span>
             </div>
           </CardContent>
