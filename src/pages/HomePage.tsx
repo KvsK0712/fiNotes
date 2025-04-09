@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import PageLayout from "@/components/layout/PageLayout";
-import { ArrowDown, ArrowUp, DollarSign, PiggyBank, Target, BarChart3 } from "lucide-react";
+import { ArrowDown, ArrowUp, Calculator, BookOpen, Wallet } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 
@@ -47,30 +47,31 @@ const HomePage = () => {
   const QuickActions = [
     { name: "Add Expense", icon: ArrowDown, color: "bg-red-100 text-red-600", path: "/tracker/add?type=expense" },
     { name: "Add Income", icon: ArrowUp, color: "bg-green-100 text-green-600", path: "/tracker/add?type=income" },
-    { name: "View Budget", icon: BarChart3, color: "bg-blue-100 text-blue-600", path: "/budget" },
-    { name: "Set Goal", icon: Target, color: "bg-purple-100 text-purple-600", path: "/goals" }
+    { name: "View Budget", icon: Calculator, color: "bg-blue-100 text-blue-600", path: "/budget" },
+    { name: "Set Goal", icon: Wallet, color: "bg-purple-100 text-purple-600", path: "/goals" }
   ];
 
   const Features = [
     { 
-      name: "Track Finances", 
-      description: "Record expenses and income with our offline tracker", 
-      path: "/tracker" 
-    },
-    { 
-      name: "Budget Planning", 
-      description: "Set monthly budgets for different expense categories", 
-      path: "/budget" 
-    },
-    { 
-      name: "Savings Goals", 
-      description: "Track your progress towards financial goals", 
-      path: "/goals" 
-    },
-    { 
-      name: "Calculate", 
+      name: "Calculator", 
       description: "EMI, loans, SIP and more financial calculators", 
-      path: "/calculators" 
+      path: "/calculators",
+      icon: Calculator,
+      color: "text-blue-500"
+    },
+    { 
+      name: "Asset", 
+      description: "Track your expenses, income and financial assets", 
+      path: "/tracker",
+      icon: Wallet,
+      color: "text-green-500"
+    },
+    { 
+      name: "Learn", 
+      description: "Educational resources for financial literacy", 
+      path: "/learn",
+      icon: BookOpen,
+      color: "text-purple-500"
     }
   ];
 
@@ -122,11 +123,16 @@ const HomePage = () => {
             {Features.map((feature) => (
               <Link key={feature.name} to={feature.path}>
                 <Card className="card-hover cursor-pointer">
-                  <CardContent className="p-4">
-                    <h3 className="font-medium">{feature.name}</h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                      {feature.description}
-                    </p>
+                  <CardContent className="p-4 flex items-center">
+                    <div className={`mr-4 ${feature.color}`}>
+                      <feature.icon size={24} />
+                    </div>
+                    <div>
+                      <h3 className="font-medium">{feature.name}</h3>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                        {feature.description}
+                      </p>
+                    </div>
                   </CardContent>
                 </Card>
               </Link>
