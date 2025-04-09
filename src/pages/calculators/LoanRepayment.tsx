@@ -36,6 +36,7 @@ const LoanRepayment = () => {
     emi: number;
     totalPayment: number;
     totalInterest: number;
+    monthlyRate: number; // Add monthlyRate to the results state
     schedule: Array<{
       month: number;
       emi: number;
@@ -141,6 +142,7 @@ const LoanRepayment = () => {
       emi: emiValue,
       totalPayment,
       totalInterest,
+      monthlyRate, // Store monthlyRate in results
       schedule,
       earlyPayoffResults
     });
@@ -161,7 +163,7 @@ const LoanRepayment = () => {
       ...(results.earlyPayoffResults && {
         earlyBalance: entry.month >= earlyPaymentMonth 
           ? Math.max(0, entry.balance - earlyPayment + (entry.month === earlyPaymentMonth ? 0 : 
-              (earlyPayment * monthlyRate * (entry.month - earlyPaymentMonth))))
+              (earlyPayment * results.monthlyRate * (entry.month - earlyPaymentMonth))))
           : entry.balance
       })
     }));
