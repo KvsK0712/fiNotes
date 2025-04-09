@@ -2,24 +2,32 @@
 import { useState } from "react";
 import PageLayout from "@/components/layout/PageLayout";
 import { Card, CardContent } from "@/components/ui/card";
-import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { useAuth } from "@/context/AuthContext";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const EMICalculator = () => {
+  const { userData } = useAuth();
+  const currencySymbol = userData?.currency || "$";
+  
   const [principalAmount, setPrincipalAmount] = useState<number>(100000);
   const [interestRate, setInterestRate] = useState<number>(10);
   const [loanTerm, setLoanTerm] = useState<number>(12);
+  const [termType, setTermType] = useState<"months" | "years">("months");
   const [emi, setEmi] = useState<number>(0);
   const [totalInterest, setTotalInterest] = useState<number>(0);
   const [totalAmount, setTotalAmount] = useState<number>(0);
 
   const calculateEMI = () => {
+    // Convert loan term to months if it's in years
+    const months = termType === "years" ? loanTerm * 12 : loanTerm;
+    
     // EMI calculation formula: [P x R x (1+R)^N]/[(1+R)^N-1]
     // where P = Principal, R = Monthly interest rate, N = Number of months
     const principal = principalAmount;
     const monthlyRate = interestRate / 100 / 12;
-    const months = loanTerm;
     
     const emiValue = principal * monthlyRate * Math.pow(1 + monthlyRate, months) / (Math.pow(1 + monthlyRate, months) - 1);
     
@@ -40,72 +48,54 @@ const EMICalculator = () => {
             
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium mb-1 block">
-                  Loan Amount
-                </label>
+                <Label className="text-sm font-medium mb-1 block">
+                  Loan Amount ({currencySymbol})
+                </Label>
                 <Input
                   type="number"
                   value={principalAmount}
                   onChange={(e) => setPrincipalAmount(Number(e.target.value))}
-                  className="mb-2"
                 />
-                <Slider
-                  value={[principalAmount]}
-                  min={1000}
-                  max={10000000}
-                  step={1000}
-                  onValueChange={(value) => setPrincipalAmount(value[0])}
-                />
-                <div className="flex justify-between text-xs text-gray-500 mt-1">
-                  <span>₹1K</span>
-                  <span>₹1Cr</span>
-                </div>
               </div>
               
               <div>
-                <label className="text-sm font-medium mb-1 block">
+                <Label className="text-sm font-medium mb-1 block">
                   Interest Rate (% per annum)
-                </label>
+                </Label>
                 <Input
                   type="number"
                   value={interestRate}
                   onChange={(e) => setInterestRate(Number(e.target.value))}
                   step="0.1"
-                  className="mb-2"
                 />
-                <Slider
-                  value={[interestRate]}
-                  min={1}
-                  max={36}
-                  step={0.1}
-                  onValueChange={(value) => setInterestRate(value[0])}
-                />
-                <div className="flex justify-between text-xs text-gray-500 mt-1">
-                  <span>1%</span>
-                  <span>36%</span>
-                </div>
               </div>
               
-              <div>
-                <label className="text-sm font-medium mb-1 block">
-                  Loan Term (months)
-                </label>
-                <Input
-                  type="number"
-                  value={loanTerm}
-                  onChange={(e) => setLoanTerm(Number(e.target.value))}
-                  className="mb-2"
-                />
-                <Slider
-                  value={[loanTerm]}
-                  min={1}
-                  max={360}
-                  step={1}
-                  onValueChange={(value) => setLoanTerm(value[0])}
-                />
-                <div className="flex justify-between text-xs text-gray-500 mt-1">
-                  <span>1 month</span>
-                  <span>30 years</span>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium mb-1 block">
+                    Loan Term
+                  </Label>
+                  <Input
+                    type="number"
+                    value={loanTerm}
+                    onChange={(e) => setLoanTerm(Number(e.target.value))}
+                    min="1"
+                  />
+                </div>
+                
+                <div>
+                  <Label className="text-sm font-medium mb-1 block">
+                    Term Type
+                  </Label>
+                  <Select value={termType} onValueChange={(value: "months" | "years") => setTermType(value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select term type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="months">Months</SelectItem>
+                      <SelectItem value="years">Years</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               
@@ -127,17 +117,24 @@ const EMICalculator = () => {
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Monthly EMI:</span>
-                  <span className="font-semibold">₹{emi.toFixed(2)}</span>
+                  <span className="font-semibold">{currencySymbol}{emi.toFixed(2)}</span>
                 </div>
                 
                 <div className="flex justify-between">
                   <span className="text-gray-600">Total Interest:</span>
-                  <span className="font-semibold">₹{totalInterest.toFixed(2)}</span>
+                  <span className="font-semibold">{currencySymbol}{totalInterest.toFixed(2)}</span>
                 </div>
                 
                 <div className="flex justify-between">
                   <span className="text-gray-600">Total Amount:</span>
-                  <span className="font-semibold">₹{totalAmount.toFixed(2)}</span>
+                  <span className="font-semibold">{currencySymbol}{totalAmount.toFixed(2)}</span>
+                </div>
+                
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Loan Term:</span>
+                  <span className="font-semibold">
+                    {termType === "years" ? `${loanTerm} years (${loanTerm * 12} months)` : `${loanTerm} months`}
+                  </span>
                 </div>
               </div>
             </CardContent>

@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import PageLayout from "@/components/layout/PageLayout";
@@ -45,10 +44,10 @@ const HomePage = () => {
   const currencySymbol = userData?.currency || "$";
 
   const QuickActions = [
-    { name: "Add Expense", icon: ArrowDown, color: "bg-red-100 text-red-600", path: "/tracker/add" },
-    { name: "Add Income", icon: ArrowUp, color: "bg-green-100 text-green-600", path: "/tracker/add" },
-    { name: "View Budget", icon: PiggyBank, color: "bg-blue-100 text-blue-600", path: "/tracker/budget" },
-    { name: "Set Goal", icon: Target, color: "bg-purple-100 text-purple-600", path: "/goals" }
+    { name: "Add Expense", icon: ArrowDown, color: "bg-red-100 text-red-600", path: "/tracker/add?type=expense" },
+    { name: "Add Income", icon: ArrowUp, color: "bg-green-100 text-green-600", path: "/tracker/add?type=income" },
+    { name: "View Budget", icon: PiggyBank, color: "bg-blue-100 text-blue-600", path: "/tracker" },
+    { name: "Set Goal", icon: Target, color: "bg-purple-100 text-purple-600", path: "/tracker" }
   ];
 
   const Features = [

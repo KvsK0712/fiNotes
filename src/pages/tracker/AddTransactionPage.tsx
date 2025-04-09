@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import PageLayout from "@/components/layout/PageLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import { useAuth } from "@/context/AuthContext";
 
 interface Transaction {
   id: string;
@@ -37,7 +38,15 @@ const incomeCategories = [
 
 const AddTransactionPage = () => {
   const navigate = useNavigate();
-  const [type, setType] = useState<"income" | "expense">("expense");
+  const location = useLocation();
+  const { userData } = useAuth();
+  const currencySymbol = userData?.currency || "$";
+  
+  // Get the transaction type from URL query parameters
+  const queryParams = new URLSearchParams(location.search);
+  const initialType = queryParams.get('type') === 'income' ? 'income' : 'expense';
+  
+  const [type, setType] = useState<"income" | "expense">(initialType);
   const [title, setTitle] = useState("");
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("");
@@ -120,7 +129,7 @@ const AddTransactionPage = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="amount">Amount</Label>
+                <Label htmlFor="amount">Amount ({currencySymbol})</Label>
                 <Input
                   id="amount"
                   type="number"
