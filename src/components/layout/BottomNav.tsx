@@ -1,5 +1,5 @@
 
-import { Home, Calculator, BookOpen, PieChart, Settings } from "lucide-react";
+import { Home, Calculator, BookOpen, PieChart, Settings, BarChart3, Target } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
 const BottomNav = () => {
@@ -7,9 +7,9 @@ const BottomNav = () => {
   
   const navItems = [
     { name: "Home", path: "/", icon: Home },
-    { name: "Calculators", path: "/calculators", icon: Calculator },
     { name: "Track", path: "/tracker", icon: PieChart },
-    { name: "Learn", path: "/learn", icon: BookOpen },
+    { name: "Budget", path: "/budget", icon: BarChart3 },
+    { name: "Goals", path: "/goals", icon: Target },
     { name: "Settings", path: "/settings", icon: Settings },
   ];
 

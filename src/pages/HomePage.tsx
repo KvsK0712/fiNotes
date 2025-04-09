@@ -1,7 +1,8 @@
+
 import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import PageLayout from "@/components/layout/PageLayout";
-import { ArrowDown, ArrowUp, DollarSign, PiggyBank, Target } from "lucide-react";
+import { ArrowDown, ArrowUp, DollarSign, PiggyBank, Target, BarChart3 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 
@@ -46,8 +47,8 @@ const HomePage = () => {
   const QuickActions = [
     { name: "Add Expense", icon: ArrowDown, color: "bg-red-100 text-red-600", path: "/tracker/add?type=expense" },
     { name: "Add Income", icon: ArrowUp, color: "bg-green-100 text-green-600", path: "/tracker/add?type=income" },
-    { name: "View Budget", icon: PiggyBank, color: "bg-blue-100 text-blue-600", path: "/tracker" },
-    { name: "Set Goal", icon: Target, color: "bg-purple-100 text-purple-600", path: "/tracker" }
+    { name: "View Budget", icon: BarChart3, color: "bg-blue-100 text-blue-600", path: "/budget" },
+    { name: "Set Goal", icon: Target, color: "bg-purple-100 text-purple-600", path: "/goals" }
   ];
 
   const Features = [
@@ -57,19 +58,19 @@ const HomePage = () => {
       path: "/tracker" 
     },
     { 
+      name: "Budget Planning", 
+      description: "Set monthly budgets for different expense categories", 
+      path: "/budget" 
+    },
+    { 
+      name: "Savings Goals", 
+      description: "Track your progress towards financial goals", 
+      path: "/goals" 
+    },
+    { 
       name: "Calculate", 
       description: "EMI, loans, SIP and more financial calculators", 
       path: "/calculators" 
-    },
-    { 
-      name: "Financial Education", 
-      description: "Learn about personal finance concepts and strategies", 
-      path: "/learn" 
-    },
-    { 
-      name: "Set Goals", 
-      description: "Track your progress towards financial goals", 
-      path: "/goals" 
     }
   ];
 
