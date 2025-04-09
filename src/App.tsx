@@ -11,6 +11,9 @@ import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import CalculatorsPage from "./pages/CalculatorsPage";
 import EMICalculator from "./pages/calculators/EMICalculator";
+import SIPPlanner from "./pages/calculators/SIPPlanner";
+import CreditCardOptimizer from "./pages/calculators/CreditCardOptimizer";
+import LoanRepayment from "./pages/calculators/LoanRepayment";
 import TrackerPage from "./pages/TrackerPage";
 import AddTransactionPage from "./pages/tracker/AddTransactionPage";
 import LearnPage from "./pages/LearnPage";
@@ -33,6 +36,9 @@ const App = () => (
             <Route path="/" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
             <Route path="/calculators" element={<ProtectedRoute><CalculatorsPage /></ProtectedRoute>} />
             <Route path="/calculators/emi" element={<ProtectedRoute><EMICalculator /></ProtectedRoute>} />
+            <Route path="/calculators/sip" element={<ProtectedRoute><SIPPlanner /></ProtectedRoute>} />
+            <Route path="/calculators/credit-card" element={<ProtectedRoute><CreditCardOptimizer /></ProtectedRoute>} />
+            <Route path="/calculators/loan" element={<ProtectedRoute><LoanRepayment /></ProtectedRoute>} />
             <Route path="/tracker" element={<ProtectedRoute><TrackerPage /></ProtectedRoute>} />
             <Route path="/tracker/add" element={<ProtectedRoute><AddTransactionPage /></ProtectedRoute>} />
             <Route path="/budget" element={<ProtectedRoute><BudgetPage /></ProtectedRoute>} />
