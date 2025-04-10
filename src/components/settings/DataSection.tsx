@@ -2,8 +2,18 @@
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Delete } from "lucide-react";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Delete, AlertTriangle } from "lucide-react";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger 
+} from "@/components/ui/alert-dialog";
 
 interface DataSectionProps {
   handleClearAllData: () => void;
@@ -16,30 +26,36 @@ const DataSection = ({ handleClearAllData }: DataSectionProps) => {
       <Card>
         <CardContent className="p-4">
           <div className="space-y-4">
-            <Dialog>
-              <DialogTrigger asChild>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
                 <Button variant="destructive" className="w-full">
                   <Delete size={16} className="mr-1" /> Clear All Data
                 </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Clear All Data</DialogTitle>
-                  <DialogDescription>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="flex items-center gap-2">
+                    <AlertTriangle className="h-5 w-5 text-destructive" />
+                    Clear All Data
+                  </AlertDialogTitle>
+                  <AlertDialogDescription>
                     This will reset your fiNotes app to its initial state. All your financial data, budgets, goals, and settings will be permanently deleted.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="pt-4 text-left">
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <div className="pt-2 text-left">
                   <p className="text-destructive font-medium">This action cannot be undone.</p>
                 </div>
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => {}}>Cancel</Button>
-                  <Button variant="destructive" onClick={handleClearAllData}>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction 
+                    onClick={handleClearAllData}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
                     <Delete size={16} className="mr-1" /> Clear All Data
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </CardContent>
       </Card>

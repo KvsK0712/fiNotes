@@ -11,14 +11,26 @@ import AppPreferencesSection from "@/components/settings/AppPreferencesSection";
 import DataSection from "@/components/settings/DataSection";
 import VersionInfo from "@/components/settings/VersionInfo";
 
+// Define storage keys for various user data
+const STORAGE_KEYS = {
+  DARK_MODE: 'fiNotes-darkMode',
+  NOTIFICATIONS: 'fiNotes-notifications',
+  TRANSACTIONS: 'pocket_wise_transactions',
+  BUDGETS: 'fiNotes-budgets',
+  GOALS: 'fiNotes-goals',
+  USER_PREFERENCES: 'fiNotes-preferences'
+  // Add any additional storage keys used in the app
+};
+
 const SettingsPage = () => {
   const [darkMode, setDarkMode] = useState(false);
   const [notifications, setNotifications] = useState(false);
   const { toast } = useToast();
   
   useEffect(() => {
-    const savedDarkMode = localStorage.getItem('fiNotes-darkMode');
-    const savedNotifications = localStorage.getItem('fiNotes-notifications');
+    // Load settings from localStorage with default values (OFF)
+    const savedDarkMode = localStorage.getItem(STORAGE_KEYS.DARK_MODE);
+    const savedNotifications = localStorage.getItem(STORAGE_KEYS.NOTIFICATIONS);
     
     setDarkMode(savedDarkMode === 'true');
     setNotifications(savedNotifications === 'true');
@@ -32,7 +44,7 @@ const SettingsPage = () => {
   
   const toggleDarkMode = (enabled: boolean) => {
     setDarkMode(enabled);
-    localStorage.setItem('fiNotes-darkMode', enabled.toString());
+    localStorage.setItem(STORAGE_KEYS.DARK_MODE, enabled.toString());
     
     if (enabled) {
       document.documentElement.classList.add('dark');
@@ -43,7 +55,7 @@ const SettingsPage = () => {
   
   const toggleNotifications = (enabled: boolean) => {
     setNotifications(enabled);
-    localStorage.setItem('fiNotes-notifications', enabled.toString());
+    localStorage.setItem(STORAGE_KEYS.NOTIFICATIONS, enabled.toString());
     
     if (enabled) {
       toast({
@@ -66,12 +78,31 @@ const SettingsPage = () => {
   };
   
   const handleClearAllData = () => {
-    localStorage.removeItem('fiNotes-darkMode');
-    localStorage.removeItem('fiNotes-notifications');
+    // Clear all app settings
+    localStorage.removeItem(STORAGE_KEYS.DARK_MODE);
+    localStorage.removeItem(STORAGE_KEYS.NOTIFICATIONS);
     
+    // Clear all user data
+    localStorage.removeItem(STORAGE_KEYS.TRANSACTIONS);
+    localStorage.removeItem(STORAGE_KEYS.BUDGETS);
+    localStorage.removeItem(STORAGE_KEYS.GOALS);
+    localStorage.removeItem(STORAGE_KEYS.USER_PREFERENCES);
+    
+    // Clear any additional data stored in localStorage
+    // This is a more comprehensive approach to ensure everything is reset
+    const keysToKeep = ['pocket_wise_auth', 'pocket_wise_user']; // Keep auth to stay logged in
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('fiNotes-') && !keysToKeep.includes(key)) {
+        localStorage.removeItem(key);
+      }
+    }
+    
+    // Reset states to default (OFF)
     setDarkMode(false);
     setNotifications(false);
     
+    // Reset UI
     document.documentElement.classList.remove('dark');
     
     toast({
