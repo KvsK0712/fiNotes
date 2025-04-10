@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import PageLayout from "@/components/layout/PageLayout";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,24 +12,28 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 
 const SettingsPage = () => {
   const [darkMode, setDarkMode] = useState(false);
-  const [notifications, setNotifications] = useState(true);
+  const [notifications, setNotifications] = useState(false);
   const { toast } = useToast();
   const { userData } = useAuth();
   
-  // Effect to check system preference for dark mode
   useEffect(() => {
-    const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    setDarkMode(isDarkMode);
+    const savedDarkMode = localStorage.getItem('fiNotes-darkMode');
+    const savedNotifications = localStorage.getItem('fiNotes-notifications');
     
-    // Apply dark mode to document if needed
-    if (isDarkMode) {
+    setDarkMode(savedDarkMode === 'true');
+    setNotifications(savedNotifications === 'true');
+    
+    if (savedDarkMode === 'true') {
       document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
     }
   }, []);
   
-  // Toggle dark mode
   const toggleDarkMode = (enabled: boolean) => {
     setDarkMode(enabled);
+    localStorage.setItem('fiNotes-darkMode', enabled.toString());
+    
     if (enabled) {
       document.documentElement.classList.add('dark');
     } else {
@@ -38,9 +41,9 @@ const SettingsPage = () => {
     }
   };
   
-  // Handle notification change
   const toggleNotifications = (enabled: boolean) => {
     setNotifications(enabled);
+    localStorage.setItem('fiNotes-notifications', enabled.toString());
     
     if (enabled) {
       toast({
@@ -48,7 +51,6 @@ const SettingsPage = () => {
         description: "You will now receive updates about your financial activities.",
       });
       
-      // Show example notification
       setTimeout(() => {
         toast({
           title: "Reminder",
@@ -63,10 +65,15 @@ const SettingsPage = () => {
     }
   };
   
-  // Clear all data handler
   const handleClearAllData = () => {
-    // In a real app, this would clear the database
-    // For this implementation, we'll just show a success message
+    localStorage.removeItem('fiNotes-darkMode');
+    localStorage.removeItem('fiNotes-notifications');
+    
+    setDarkMode(false);
+    setNotifications(false);
+    
+    document.documentElement.classList.remove('dark');
+    
     toast({
       title: "All Data Cleared",
       description: "Your fiNotes app has been reset to default settings.",
@@ -76,7 +83,6 @@ const SettingsPage = () => {
   return (
     <PageLayout title="Settings">
       <div className="finance-container animate-fade-in space-y-6">
-        {/* Profile Section */}
         <div className="space-y-4">
           <h2 className="text-lg font-medium">Profile</h2>
           <UserProfile />
