@@ -1,11 +1,12 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import PageLayout from "@/components/layout/PageLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/AuthContext";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Trash } from "lucide-react";
@@ -24,6 +25,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/
 type EarlyPayment = {
   amount: number;
   month: number;
+  error?: string;
 };
 
 const LoanRepayment = () => {
@@ -35,6 +37,7 @@ const LoanRepayment = () => {
   const [loanTerm, setLoanTerm] = useState<number>(12);
   const [termType, setTermType] = useState<"months" | "years">("months");
   const [loanType, setLoanType] = useState<"personal" | "auto" | "education" | "home">("personal");
+  const [validationError, setValidationError] = useState<string | null>(null);
   
   // Replace single early payment with an array of early payments
   const [earlyPayments, setEarlyPayments] = useState<EarlyPayment[]>([
@@ -62,6 +65,11 @@ const LoanRepayment = () => {
     };
   } | null>(null);
 
+  // Validate early payments whenever they change or loan details change
+  useEffect(() => {
+    validateEarlyPayments();
+  }, [earlyPayments, loanAmount, interestRate, loanTerm, termType]);
+  
   // Add a new early payment to the list
   const addEarlyPayment = () => {
     setEarlyPayments([...earlyPayments, { amount: 0, month: Math.min(earlyPayments.length * 3 + 6, (termType === "years" ? loanTerm * 12 : loanTerm) - 1) }]);
@@ -77,9 +85,106 @@ const LoanRepayment = () => {
     const updatedPayments = [...earlyPayments];
     updatedPayments[index] = { ...updatedPayments[index], [field]: value };
     setEarlyPayments(updatedPayments);
+    // Clear error state when updating
+    setValidationError(null);
+  };
+
+  const validateEarlyPayments = () => {
+    // Reset validation errors
+    setValidationError(null);
+    
+    // Don't validate if any values are 0 or negative
+    if (loanAmount <= 0 || interestRate <= 0 || loanTerm <= 0) {
+      return;
+    }
+    
+    const months = termType === "years" ? loanTerm * 12 : loanTerm;
+    const monthlyRate = interestRate / 100 / 12;
+    const emiValue = loanAmount * monthlyRate * Math.pow(1 + monthlyRate, months) / 
+                    (Math.pow(1 + monthlyRate, months) - 1);
+
+    // Clone and sort early payments by month
+    const sortedPayments = [...earlyPayments]
+      .filter(payment => payment.amount > 0 && payment.month > 0 && payment.month <= months)
+      .sort((a, b) => a.month - b.month);
+    
+    if (sortedPayments.length === 0) return;
+    
+    // Simulate loan repayment with early payments
+    let remainingBalance = loanAmount;
+    let currentMonth = 1;
+    let updatedPayments = [...earlyPayments];
+    let hasError = false;
+    
+    for (let i = 0; i < sortedPayments.length; i++) {
+      const payment = sortedPayments[i];
+      const paymentIndex = earlyPayments.findIndex(p => p.month === payment.month && p.amount === payment.amount);
+      
+      // Process regular payments until we reach this early payment month
+      while (currentMonth < payment.month) {
+        const interestForMonth = remainingBalance * monthlyRate;
+        const principalForMonth = emiValue - interestForMonth;
+        remainingBalance -= principalForMonth;
+        currentMonth++;
+        
+        // If loan is already paid off before reaching this early payment
+        if (remainingBalance <= 0) {
+          if (paymentIndex !== -1) {
+            updatedPayments[paymentIndex] = { 
+              ...updatedPayments[paymentIndex], 
+              error: `Loan will be fully paid by month ${currentMonth - 1}, before this payment` 
+            };
+            hasError = true;
+          }
+          break;
+        }
+      }
+      
+      if (remainingBalance <= 0) continue;
+      
+      // Apply early payment
+      if (payment.amount > remainingBalance) {
+        if (paymentIndex !== -1) {
+          updatedPayments[paymentIndex] = { 
+            ...updatedPayments[paymentIndex], 
+            error: `Payment exceeds remaining balance of ${currencySymbol}${remainingBalance.toFixed(2)}` 
+          };
+          hasError = true;
+        }
+      }
+      
+      remainingBalance -= payment.amount;
+      
+      // If this payment exactly pays off the loan or overpays
+      if (remainingBalance <= 0) {
+        // Warn any later payments
+        for (let j = i + 1; j < sortedPayments.length; j++) {
+          const laterPayment = sortedPayments[j];
+          const laterIndex = earlyPayments.findIndex(p => p.month === laterPayment.month && p.amount === laterPayment.amount);
+          
+          if (laterIndex !== -1) {
+            updatedPayments[laterIndex] = { 
+              ...updatedPayments[laterIndex], 
+              error: `Loan will be fully paid by month ${payment.month}, before this payment` 
+            };
+            hasError = true;
+          }
+        }
+        break;
+      }
+    }
+    
+    if (hasError) {
+      setEarlyPayments(updatedPayments);
+      setValidationError("Some early payments need adjustment. See highlighted fields for details.");
+    }
   };
 
   const calculateLoan = () => {
+    // Validate before calculating
+    validateEarlyPayments();
+    if (validationError) return;
+
     // Convert loan term to months if it's in years
     const months = termType === "years" ? loanTerm * 12 : loanTerm;
     
@@ -307,6 +412,13 @@ const LoanRepayment = () => {
                 </div>
               </div>
               
+              {validationError && (
+                <Alert variant="destructive" className="mt-2">
+                  <AlertTitle>Error</AlertTitle>
+                  <AlertDescription>{validationError}</AlertDescription>
+                </Alert>
+              )}
+              
               <h3 className="text-md font-medium pt-2">Early Payment Options</h3>
               
               {earlyPayments.map((payment, index) => (
@@ -320,6 +432,7 @@ const LoanRepayment = () => {
                       value={payment.amount}
                       onChange={(e) => updateEarlyPayment(index, 'amount', Number(e.target.value))}
                       min="0"
+                      className={payment.error ? "border-red-500" : ""}
                     />
                   </div>
                   
@@ -333,7 +446,11 @@ const LoanRepayment = () => {
                       onChange={(e) => updateEarlyPayment(index, 'month', Number(e.target.value))}
                       min="1"
                       max={termType === "years" ? loanTerm * 12 : loanTerm}
+                      className={payment.error ? "border-red-500" : ""}
                     />
+                    {payment.error && (
+                      <p className="text-xs text-red-500 mt-1">{payment.error}</p>
+                    )}
                   </div>
                   
                   <div className="col-span-2 flex justify-end">
@@ -360,6 +477,7 @@ const LoanRepayment = () => {
               <Button 
                 onClick={calculateLoan} 
                 className="w-full bg-primary hover:bg-primary/90"
+                disabled={!!validationError}
               >
                 Calculate Repayment
               </Button>
