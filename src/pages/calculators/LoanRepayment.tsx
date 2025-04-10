@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/AuthContext";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Trash } from "lucide-react";
 import {
   LineChart,
   Line,
@@ -20,6 +21,11 @@ import {
 } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 
+type EarlyPayment = {
+  amount: number;
+  month: number;
+};
+
 const LoanRepayment = () => {
   const { userData } = useAuth();
   const currencySymbol = userData?.currency || "$";
@@ -29,20 +35,24 @@ const LoanRepayment = () => {
   const [loanTerm, setLoanTerm] = useState<number>(12);
   const [termType, setTermType] = useState<"months" | "years">("months");
   const [loanType, setLoanType] = useState<"personal" | "auto" | "education" | "home">("personal");
-  const [earlyPayment, setEarlyPayment] = useState<number>(0);
-  const [earlyPaymentMonth, setEarlyPaymentMonth] = useState<number>(6);
+  
+  // Replace single early payment with an array of early payments
+  const [earlyPayments, setEarlyPayments] = useState<EarlyPayment[]>([
+    { amount: 0, month: 6 }
+  ]);
   
   const [results, setResults] = useState<{
     emi: number;
     totalPayment: number;
     totalInterest: number;
-    monthlyRate: number; // Add monthlyRate to the results state
+    monthlyRate: number;
     schedule: Array<{
       month: number;
       emi: number;
       principal: number;
       interest: number;
       balance: number;
+      extraPayment?: number; // Track any extra payment in this month
     }>;
     earlyPayoffResults?: {
       totalPayment: number;
@@ -51,6 +61,23 @@ const LoanRepayment = () => {
       interestSaved: number;
     };
   } | null>(null);
+
+  // Add a new early payment to the list
+  const addEarlyPayment = () => {
+    setEarlyPayments([...earlyPayments, { amount: 0, month: Math.min(earlyPayments.length * 3 + 6, (termType === "years" ? loanTerm * 12 : loanTerm) - 1) }]);
+  };
+
+  // Remove an early payment by index
+  const removeEarlyPayment = (index: number) => {
+    setEarlyPayments(earlyPayments.filter((_, i) => i !== index));
+  };
+
+  // Update an early payment
+  const updateEarlyPayment = (index: number, field: keyof EarlyPayment, value: number) => {
+    const updatedPayments = [...earlyPayments];
+    updatedPayments[index] = { ...updatedPayments[index], [field]: value };
+    setEarlyPayments(updatedPayments);
+  };
 
   const calculateLoan = () => {
     // Convert loan term to months if it's in years
@@ -87,7 +114,13 @@ const LoanRepayment = () => {
     
     // Calculate early payoff impact if specified
     let earlyPayoffResults;
-    if (earlyPayment > 0 && earlyPaymentMonth > 0 && earlyPaymentMonth < months) {
+    
+    if (earlyPayments.some(payment => payment.amount > 0 && payment.month > 0 && payment.month < months)) {
+      // Sort early payments by month
+      const sortedEarlyPayments = [...earlyPayments]
+        .filter(payment => payment.amount > 0 && payment.month > 0 && payment.month <= months)
+        .sort((a, b) => a.month - b.month);
+      
       let earlySchedule = [];
       let earlyRemainingBalance = principal;
       let totalEarlyPayment = 0;
@@ -98,10 +131,14 @@ const LoanRepayment = () => {
         const interestForMonth = earlyRemainingBalance * monthlyRate;
         const principalForMonth = emiValue - interestForMonth;
         
-        // Apply early payment at specified month
-        if (i === earlyPaymentMonth) {
-          earlyRemainingBalance -= earlyPayment;
-          totalEarlyPayment += earlyPayment;
+        // Check if there is an early payment for this month
+        const earlyPayment = sortedEarlyPayments.find(payment => payment.month === i);
+        let extraPayment = 0;
+        
+        if (earlyPayment) {
+          extraPayment = earlyPayment.amount;
+          earlyRemainingBalance -= extraPayment;
+          totalEarlyPayment += extraPayment;
         }
         
         if (earlyRemainingBalance <= 0) {
@@ -111,21 +148,33 @@ const LoanRepayment = () => {
           totalEarlyInterest += interestForMonth;
           earlyRemainingBalance = 0;
           lastMonth = i;
+          
+          // Record this month in early schedule
+          earlySchedule.push({
+            month: i,
+            emi: emiValue,
+            principal: principalForMonth,
+            interest: interestForMonth,
+            balance: 0,
+            extraPayment: extraPayment
+          });
+          
           break;
         } else {
           earlyRemainingBalance -= principalForMonth;
           totalEarlyPayment += emiValue;
           totalEarlyInterest += interestForMonth;
+          
+          // Record this month in early schedule
+          earlySchedule.push({
+            month: i,
+            emi: emiValue,
+            principal: principalForMonth,
+            interest: interestForMonth,
+            balance: Math.max(0, earlyRemainingBalance),
+            extraPayment: extraPayment
+          });
         }
-        
-        // Record this month in early schedule
-        earlySchedule.push({
-          month: i,
-          emi: i === earlyPaymentMonth ? emiValue + earlyPayment : emiValue,
-          principal: i === earlyPaymentMonth ? principalForMonth + earlyPayment : principalForMonth,
-          interest: interestForMonth,
-          balance: Math.max(0, earlyRemainingBalance)
-        });
         
         lastMonth = i;
       }
@@ -136,13 +185,17 @@ const LoanRepayment = () => {
         monthsSaved: months - lastMonth,
         interestSaved: totalInterest - totalEarlyInterest
       };
+      
+      // Update the schedule to include early payments
+      schedule.length = 0; // Clear the schedule
+      schedule.push(...earlySchedule); // Use the early payment schedule
     }
     
     setResults({
       emi: emiValue,
-      totalPayment,
-      totalInterest,
-      monthlyRate, // Store monthlyRate in results
+      totalPayment: earlyPayoffResults?.totalPayment || totalPayment,
+      totalInterest: earlyPayoffResults?.totalInterest || totalInterest,
+      monthlyRate,
       schedule,
       earlyPayoffResults
     });
@@ -153,20 +206,23 @@ const LoanRepayment = () => {
     if (!results) return [];
     
     // Get principal and interest over time
-    return results.schedule.filter((_, index) => index % 3 === 0).map(entry => ({
-      month: entry.month,
-      principal: loanAmount - entry.balance,
-      interest: results.schedule
+    return results.schedule.filter((_, index) => index % 3 === 0 || index === results.schedule.length - 1).map(entry => {
+      // Calculate cumulative values up to this point
+      const cumulativeInterest = results.schedule
         .filter(item => item.month <= entry.month)
-        .reduce((sum, item) => sum + item.interest, 0),
-      balance: entry.balance,
-      ...(results.earlyPayoffResults && {
-        earlyBalance: entry.month >= earlyPaymentMonth 
-          ? Math.max(0, entry.balance - earlyPayment + (entry.month === earlyPaymentMonth ? 0 : 
-              (earlyPayment * results.monthlyRate * (entry.month - earlyPaymentMonth))))
-          : entry.balance
-      })
-    }));
+        .reduce((sum, item) => sum + item.interest, 0);
+      
+      const cumulativeExtraPayments = results.schedule
+        .filter(item => item.month <= entry.month && item.extraPayment)
+        .reduce((sum, item) => sum + (item.extraPayment || 0), 0);
+      
+      return {
+        month: entry.month,
+        principal: loanAmount - entry.balance - cumulativeExtraPayments,
+        interest: cumulativeInterest,
+        balance: entry.balance,
+      };
+    });
   };
 
   const chartData = prepareChartData();
@@ -251,33 +307,55 @@ const LoanRepayment = () => {
                 </div>
               </div>
               
-              <h3 className="text-md font-medium pt-2">Early Payment Option</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-sm font-medium mb-1 block">
-                    Lump Sum Payment ({currencySymbol})
-                  </Label>
-                  <Input
-                    type="number"
-                    value={earlyPayment}
-                    onChange={(e) => setEarlyPayment(Number(e.target.value))}
-                    min="0"
-                  />
+              <h3 className="text-md font-medium pt-2">Early Payment Options</h3>
+              
+              {earlyPayments.map((payment, index) => (
+                <div key={index} className="grid grid-cols-12 gap-3 items-end border-b pb-2 border-gray-100 dark:border-gray-800">
+                  <div className="col-span-5">
+                    <Label className="text-sm font-medium mb-1 block">
+                      Payment Amount ({currencySymbol})
+                    </Label>
+                    <Input
+                      type="number"
+                      value={payment.amount}
+                      onChange={(e) => updateEarlyPayment(index, 'amount', Number(e.target.value))}
+                      min="0"
+                    />
+                  </div>
+                  
+                  <div className="col-span-5">
+                    <Label className="text-sm font-medium mb-1 block">
+                      At Month #
+                    </Label>
+                    <Input
+                      type="number"
+                      value={payment.month}
+                      onChange={(e) => updateEarlyPayment(index, 'month', Number(e.target.value))}
+                      min="1"
+                      max={termType === "years" ? loanTerm * 12 : loanTerm}
+                    />
+                  </div>
+                  
+                  <div className="col-span-2 flex justify-end">
+                    <Button 
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => removeEarlyPayment(index)}
+                      className="h-10 w-10 rounded-full"
+                    >
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
-                
-                <div>
-                  <Label className="text-sm font-medium mb-1 block">
-                    Payment at Month #
-                  </Label>
-                  <Input
-                    type="number"
-                    value={earlyPaymentMonth}
-                    onChange={(e) => setEarlyPaymentMonth(Number(e.target.value))}
-                    min="1"
-                    max={termType === "years" ? loanTerm * 12 : loanTerm}
-                  />
-                </div>
-              </div>
+              ))}
+              
+              <Button 
+                variant="outline" 
+                onClick={addEarlyPayment}
+                className="w-full"
+              >
+                Add Another Early Payment
+              </Button>
               
               <Button 
                 onClick={calculateLoan} 
@@ -321,7 +399,7 @@ const LoanRepayment = () => {
                 
                 {results.earlyPayoffResults && (
                   <div className="mt-6 pt-4 border-t">
-                    <h3 className="font-medium mb-2">With Early Payment</h3>
+                    <h3 className="font-medium mb-2">With Early Payments</h3>
                     <div className="space-y-3">
                       <div className="flex justify-between">
                         <span className="text-gray-600">Total Interest:</span>
@@ -357,7 +435,6 @@ const LoanRepayment = () => {
                       principal: { label: 'Principal Paid' },
                       interest: { label: 'Interest Paid' },
                       balance: { label: 'Remaining Balance' },
-                      earlyBalance: { label: 'Balance with Early Payment' },
                     }}
                   >
                     <ResponsiveContainer width="100%" height="100%">
@@ -387,15 +464,6 @@ const LoanRepayment = () => {
                         <Line type="monotone" dataKey="principal" name="Principal Paid" stroke="#8884d8" />
                         <Line type="monotone" dataKey="interest" name="Interest Paid" stroke="#82ca9d" />
                         <Line type="monotone" dataKey="balance" name="Remaining Balance" stroke="#ffc658" />
-                        {results.earlyPayoffResults && (
-                          <Line 
-                            type="monotone" 
-                            dataKey="earlyBalance" 
-                            name="Balance with Early Payment" 
-                            stroke="#ff7300" 
-                            strokeDasharray="5 5"
-                          />
-                        )}
                       </LineChart>
                     </ResponsiveContainer>
                   </ChartContainer>
@@ -414,44 +482,52 @@ const LoanRepayment = () => {
                         <TableHead>EMI</TableHead>
                         <TableHead>Principal</TableHead>
                         <TableHead>Interest</TableHead>
+                        <TableHead>Extra Payment</TableHead>
                         <TableHead>Balance</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {/* Show first 12 months + few around early payment if applicable */}
+                      {/* Show first 12 months + few around early payments */}
                       {results.schedule
-                        .filter((_, index) => 
-                          index < 12 || 
-                          (results.earlyPayoffResults && 
-                           Math.abs(index + 1 - earlyPaymentMonth) <= 2)
-                        )
+                        .filter((entry, index) => {
+                          // Always show first 12 months
+                          if (index < 12) return true;
+                          
+                          // Show last month
+                          if (index === results.schedule.length - 1) return true;
+                          
+                          // Show months with early payments and surrounding months
+                          const hasNearbyEarlyPayment = earlyPayments.some(payment => 
+                            Math.abs(entry.month - payment.month) <= 1 && payment.amount > 0
+                          );
+                          
+                          return hasNearbyEarlyPayment;
+                        })
                         .map((entry) => (
                           <TableRow 
                             key={entry.month}
-                            className={entry.month === earlyPaymentMonth ? "bg-yellow-50 dark:bg-yellow-900/20" : ""}
+                            className={entry.extraPayment ? "bg-yellow-50 dark:bg-yellow-900/20" : ""}
                           >
                             <TableCell>{entry.month}</TableCell>
                             <TableCell>{currencySymbol}{entry.emi.toFixed(2)}</TableCell>
                             <TableCell>{currencySymbol}{entry.principal.toFixed(2)}</TableCell>
                             <TableCell>{currencySymbol}{entry.interest.toFixed(2)}</TableCell>
+                            <TableCell>
+                              {entry.extraPayment ? `${currencySymbol}${entry.extraPayment.toFixed(2)}` : '-'}
+                            </TableCell>
                             <TableCell>{currencySymbol}{entry.balance.toFixed(2)}</TableCell>
                           </TableRow>
                         ))
                       }
-                      {results.schedule.length > 12 && !results.earlyPayoffResults && (
-                        <TableRow>
-                          <TableCell colSpan={5} className="text-center py-2">
-                            ... {results.schedule.length - 12} more months ...
-                          </TableCell>
-                        </TableRow>
-                      )}
                       {results.schedule.length > 14 && (
                         <TableRow>
-                          <TableCell>{results.schedule.length}</TableCell>
-                          <TableCell>{currencySymbol}{results.schedule[results.schedule.length - 1].emi.toFixed(2)}</TableCell>
-                          <TableCell>{currencySymbol}{results.schedule[results.schedule.length - 1].principal.toFixed(2)}</TableCell>
-                          <TableCell>{currencySymbol}{results.schedule[results.schedule.length - 1].interest.toFixed(2)}</TableCell>
-                          <TableCell>{currencySymbol}{results.schedule[results.schedule.length - 1].balance.toFixed(2)}</TableCell>
+                          <TableCell colSpan={6} className="text-center py-2 italic text-gray-500">
+                            {results.schedule.length > 14 && results.schedule.filter((entry, index) => 
+                              index >= 12 && 
+                              index < results.schedule.length - 1 && 
+                              !earlyPayments.some(payment => Math.abs(entry.month - payment.month) <= 1 && payment.amount > 0)
+                            ).length > 0 ? '... more months ...' : ''}
+                          </TableCell>
                         </TableRow>
                       )}
                     </TableBody>
