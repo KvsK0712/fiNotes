@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import PageLayout from "@/components/layout/PageLayout";
 import { Card, CardContent } from "@/components/ui/card";
@@ -39,7 +38,6 @@ const LoanRepayment = () => {
   const [loanType, setLoanType] = useState<"personal" | "auto" | "education" | "home">("personal");
   const [validationError, setValidationError] = useState<string | null>(null);
   
-  // Replace single early payment with an array of early payments
   const [earlyPayments, setEarlyPayments] = useState<EarlyPayment[]>([
     { amount: 0, month: 6 }
   ]);
@@ -55,7 +53,7 @@ const LoanRepayment = () => {
       principal: number;
       interest: number;
       balance: number;
-      extraPayment?: number; // Track any extra payment in this month
+      extraPayment?: number;
     }>;
     earlyPayoffResults?: {
       totalPayment: number;
@@ -65,35 +63,28 @@ const LoanRepayment = () => {
     };
   } | null>(null);
 
-  // Validate early payments whenever they change or loan details change
   useEffect(() => {
     validateEarlyPayments();
   }, [earlyPayments, loanAmount, interestRate, loanTerm, termType]);
   
-  // Add a new early payment to the list
   const addEarlyPayment = () => {
     setEarlyPayments([...earlyPayments, { amount: 0, month: Math.min(earlyPayments.length * 3 + 6, (termType === "years" ? loanTerm * 12 : loanTerm) - 1) }]);
   };
 
-  // Remove an early payment by index
   const removeEarlyPayment = (index: number) => {
     setEarlyPayments(earlyPayments.filter((_, i) => i !== index));
   };
 
-  // Update an early payment
   const updateEarlyPayment = (index: number, field: keyof EarlyPayment, value: number) => {
     const updatedPayments = [...earlyPayments];
     updatedPayments[index] = { ...updatedPayments[index], [field]: value };
     setEarlyPayments(updatedPayments);
-    // Clear error state when updating
     setValidationError(null);
   };
 
   const validateEarlyPayments = () => {
-    // Reset validation errors
     setValidationError(null);
     
-    // Don't validate if any values are 0 or negative
     if (loanAmount <= 0 || interestRate <= 0 || loanTerm <= 0) {
       return;
     }
@@ -103,14 +94,12 @@ const LoanRepayment = () => {
     const emiValue = loanAmount * monthlyRate * Math.pow(1 + monthlyRate, months) / 
                     (Math.pow(1 + monthlyRate, months) - 1);
 
-    // Clone and sort early payments by month
     const sortedPayments = [...earlyPayments]
       .filter(payment => payment.amount > 0 && payment.month > 0 && payment.month <= months)
       .sort((a, b) => a.month - b.month);
     
     if (sortedPayments.length === 0) return;
     
-    // Simulate loan repayment with early payments
     let remainingBalance = loanAmount;
     let currentMonth = 1;
     let updatedPayments = [...earlyPayments];
@@ -120,14 +109,12 @@ const LoanRepayment = () => {
       const payment = sortedPayments[i];
       const paymentIndex = earlyPayments.findIndex(p => p.month === payment.month && p.amount === payment.amount);
       
-      // Process regular payments until we reach this early payment month
       while (currentMonth < payment.month) {
         const interestForMonth = remainingBalance * monthlyRate;
         const principalForMonth = emiValue - interestForMonth;
         remainingBalance -= principalForMonth;
         currentMonth++;
         
-        // If loan is already paid off before reaching this early payment
         if (remainingBalance <= 0) {
           if (paymentIndex !== -1) {
             updatedPayments[paymentIndex] = { 
@@ -142,7 +129,6 @@ const LoanRepayment = () => {
       
       if (remainingBalance <= 0) continue;
       
-      // Apply early payment
       if (payment.amount > remainingBalance) {
         if (paymentIndex !== -1) {
           updatedPayments[paymentIndex] = { 
@@ -155,9 +141,7 @@ const LoanRepayment = () => {
       
       remainingBalance -= payment.amount;
       
-      // If this payment exactly pays off the loan or overpays
       if (remainingBalance <= 0) {
-        // Warn any later payments
         for (let j = i + 1; j < sortedPayments.length; j++) {
           const laterPayment = sortedPayments[j];
           const laterIndex = earlyPayments.findIndex(p => p.month === laterPayment.month && p.amount === laterPayment.amount);
@@ -181,15 +165,15 @@ const LoanRepayment = () => {
   };
 
   const calculateLoan = () => {
-    // Validate before calculating
-    validateEarlyPayments();
-    if (validationError) return;
-
-    // Convert loan term to months if it's in years
+    setValidationError(null);
+    const clearedErrorPayments = earlyPayments.map(payment => ({
+      ...payment,
+      error: undefined
+    }));
+    setEarlyPayments(clearedErrorPayments);
+    
     const months = termType === "years" ? loanTerm * 12 : loanTerm;
     
-    // EMI calculation formula: [P x R x (1+R)^N]/[(1+R)^N-1]
-    // where P = Principal, R = Monthly interest rate, N = Number of months
     const principal = loanAmount;
     const monthlyRate = interestRate / 100 / 12;
     
@@ -198,7 +182,6 @@ const LoanRepayment = () => {
     let totalPayment = emiValue * months;
     let totalInterest = totalPayment - principal;
     
-    // Generate amortization schedule
     const schedule = [];
     let remainingBalance = principal;
     
@@ -217,11 +200,9 @@ const LoanRepayment = () => {
       });
     }
     
-    // Calculate early payoff impact if specified
     let earlyPayoffResults;
     
     if (earlyPayments.some(payment => payment.amount > 0 && payment.month > 0 && payment.month < months)) {
-      // Sort early payments by month
       const sortedEarlyPayments = [...earlyPayments]
         .filter(payment => payment.amount > 0 && payment.month > 0 && payment.month <= months)
         .sort((a, b) => a.month - b.month);
@@ -236,7 +217,6 @@ const LoanRepayment = () => {
         const interestForMonth = earlyRemainingBalance * monthlyRate;
         const principalForMonth = emiValue - interestForMonth;
         
-        // Check if there is an early payment for this month
         const earlyPayment = sortedEarlyPayments.find(payment => payment.month === i);
         let extraPayment = 0;
         
@@ -247,14 +227,12 @@ const LoanRepayment = () => {
         }
         
         if (earlyRemainingBalance <= 0) {
-          // Final payment might be less than full EMI
           const finalPayment = principalForMonth + interestForMonth + earlyRemainingBalance;
           totalEarlyPayment += finalPayment;
           totalEarlyInterest += interestForMonth;
           earlyRemainingBalance = 0;
           lastMonth = i;
           
-          // Record this month in early schedule
           earlySchedule.push({
             month: i,
             emi: emiValue,
@@ -270,7 +248,6 @@ const LoanRepayment = () => {
           totalEarlyPayment += emiValue;
           totalEarlyInterest += interestForMonth;
           
-          // Record this month in early schedule
           earlySchedule.push({
             month: i,
             emi: emiValue,
@@ -291,9 +268,8 @@ const LoanRepayment = () => {
         interestSaved: totalInterest - totalEarlyInterest
       };
       
-      // Update the schedule to include early payments
-      schedule.length = 0; // Clear the schedule
-      schedule.push(...earlySchedule); // Use the early payment schedule
+      schedule.length = 0;
+      schedule.push(...earlySchedule);
     }
     
     setResults({
@@ -306,13 +282,10 @@ const LoanRepayment = () => {
     });
   };
 
-  // Generate chart data
   const prepareChartData = () => {
     if (!results) return [];
     
-    // Get principal and interest over time
     return results.schedule.filter((_, index) => index % 3 === 0 || index === results.schedule.length - 1).map(entry => {
-      // Calculate cumulative values up to this point
       const cumulativeInterest = results.schedule
         .filter(item => item.month <= entry.month)
         .reduce((sum, item) => sum + item.interest, 0);
@@ -605,20 +578,13 @@ const LoanRepayment = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {/* Show first 12 months + few around early payments */}
                       {results.schedule
                         .filter((entry, index) => {
-                          // Always show first 12 months
                           if (index < 12) return true;
-                          
-                          // Show last month
                           if (index === results.schedule.length - 1) return true;
-                          
-                          // Show months with early payments and surrounding months
                           const hasNearbyEarlyPayment = earlyPayments.some(payment => 
                             Math.abs(entry.month - payment.month) <= 1 && payment.amount > 0
                           );
-                          
                           return hasNearbyEarlyPayment;
                         })
                         .map((entry) => (

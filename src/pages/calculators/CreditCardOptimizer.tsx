@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import PageLayout from "@/components/layout/PageLayout";
 import { Card, CardContent } from "@/components/ui/card";
@@ -82,73 +81,61 @@ const CreditCardOptimizer = () => {
   };
 
   const calculatePayoff = () => {
-    // Validate input
     if (cards.length === 0 || monthlyPayment <= 0) {
       return;
     }
 
-    // Check if monthly payment is at least equal to sum of minimum payments
     const totalMinPayments = cards.reduce((sum, card) => sum + card.minPayment, 0);
     if (monthlyPayment < totalMinPayments) {
       alert(`Your monthly payment must be at least equal to the sum of minimum payments: ${currencySymbol}${totalMinPayments}`);
       return;
     }
 
-    // Sort cards based on strategy
-    const sortedCards = [...cards].sort((a, b) => {
+    const cardsCopy = [...cards];
+
+    const sortedCards = [...cardsCopy].sort((a, b) => {
       if (strategy === 'avalanche') {
-        // Highest interest rate first
         return b.interestRate - a.interestRate;
       } else {
-        // Lowest balance first
         return a.balance - b.balance;
       }
     });
 
-    // Calculate payoff plan
     const plans: PaymentPlan[] = [];
     let totalMonths = 0;
     let strategicTotalInterest = 0;
     let minOnlyInterest = 0;
 
-    // Simulation data
     let remainingCards = [...sortedCards];
     let currentMonth = 1;
     let availablePayment = monthlyPayment;
 
     while (remainingCards.length > 0) {
-      // Pay minimum on all cards
       let leftover = availablePayment;
       for (const card of remainingCards) {
         leftover -= card.minPayment;
       }
 
-      // Add extra payment to the target card
       if (leftover > 0 && remainingCards.length > 0) {
-        const targetCard = remainingCards[0]; // First card based on strategy
+        const targetCard = remainingCards[0];
         const extraPayment = Math.min(leftover, targetCard.balance);
         leftover -= extraPayment;
       }
 
-      // Update card balances and track interest
       for (let i = remainingCards.length - 1; i >= 0; i--) {
         const card = remainingCards[i];
         const interest = (card.balance * (card.interestRate / 100)) / 12;
         strategicTotalInterest += interest;
         
-        // Calculate payment for this card
         let cardPayment;
         if (i === 0 && leftover === 0) {
-          // This is the target card, add extra payment
           cardPayment = Math.min(card.minPayment + (availablePayment - leftover - totalMinPayments), card.balance + interest);
         } else {
           cardPayment = Math.min(card.minPayment, card.balance + interest);
         }
 
-        // Update balance
         card.balance = card.balance + interest - cardPayment;
 
-        // Get plan for this card or create a new one
         let plan = plans.find(p => p.id === card.id);
         if (!plan) {
           plan = {
@@ -161,7 +148,6 @@ const CreditCardOptimizer = () => {
           plans.push(plan);
         }
 
-        // Update plan
         plan.totalInterest += interest;
         plan.paymentSchedule.push({
           month: currentMonth,
@@ -171,7 +157,6 @@ const CreditCardOptimizer = () => {
           principalPaid: cardPayment - interest
         });
 
-        // Check if card is paid off
         if (card.balance <= 0) {
           plan.monthsToPayoff = currentMonth;
           remainingCards.splice(i, 1);
@@ -179,11 +164,10 @@ const CreditCardOptimizer = () => {
       }
 
       currentMonth++;
-      if (currentMonth > 1000) break; // Safety to prevent infinite loop
+      if (currentMonth > 1000) break;
     }
 
-    // Calculate minimum payment only scenario for comparison
-    let minPaymentCards = [...cards];
+    let minPaymentCards = [...cardsCopy];
     let minMonth = 1;
     while (minPaymentCards.some(card => card.balance > 0) && minMonth <= 1000) {
       for (const card of minPaymentCards) {
@@ -206,7 +190,6 @@ const CreditCardOptimizer = () => {
     setMinOnlyTotalInterest(minOnlyInterest);
   };
 
-  // Prepare chart data
   const prepareChartData = () => {
     if (paymentPlans.length === 0) return [];
 
