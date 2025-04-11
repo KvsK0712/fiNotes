@@ -16,6 +16,7 @@ import CreditCardOptimizer from "./pages/calculators/CreditCardOptimizer";
 import LoanRepayment from "./pages/calculators/LoanRepayment";
 import TrackerPage from "./pages/TrackerPage";
 import AddTransactionPage from "./pages/tracker/AddTransactionPage";
+import AssetsPage from "./pages/AssetsPage";
 import LearnPage from "./pages/LearnPage";
 import SettingsPage from "./pages/SettingsPage";
 import BudgetPage from "./pages/BudgetPage";
@@ -41,6 +42,7 @@ const App = () => (
             <Route path="/calculators/loan" element={<ProtectedRoute><LoanRepayment /></ProtectedRoute>} />
             <Route path="/tracker" element={<ProtectedRoute><TrackerPage /></ProtectedRoute>} />
             <Route path="/tracker/add" element={<ProtectedRoute><AddTransactionPage /></ProtectedRoute>} />
+            <Route path="/assets" element={<ProtectedRoute><AssetsPage /></ProtectedRoute>} />
             <Route path="/budget" element={<ProtectedRoute><BudgetPage /></ProtectedRoute>} />
             <Route path="/goals" element={<ProtectedRoute><GoalsPage /></ProtectedRoute>} />
             <Route path="/learn" element={<ProtectedRoute><LearnPage /></ProtectedRoute>} />

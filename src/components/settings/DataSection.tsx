@@ -3,6 +3,7 @@ import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Delete, AlertTriangle } from "lucide-react";
+import { toast } from "sonner";
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -20,6 +21,32 @@ interface DataSectionProps {
 }
 
 const DataSection = ({ handleClearAllData }: DataSectionProps) => {
+  const handleClearData = () => {
+    // Clear all transaction data
+    localStorage.removeItem("pocket_wise_transactions");
+    
+    // Clear all assets data
+    localStorage.removeItem("fiNotes_assets");
+    
+    // Clear all liabilities data
+    localStorage.removeItem("fiNotes_liabilities");
+    
+    // Clear all net worth history
+    localStorage.removeItem("fiNotes_net_worth_history");
+    
+    // Clear any other app data with fiNotes_ prefix
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith('fiNotes_')) {
+        localStorage.removeItem(key);
+      }
+    });
+    
+    // Execute any additional clear data functions passed from parent
+    handleClearAllData();
+    
+    toast.success("All data cleared successfully");
+  };
+
   return (
     <div className="space-y-4">
       <h2 className="text-lg font-medium">Data</h2>
@@ -39,7 +66,7 @@ const DataSection = ({ handleClearAllData }: DataSectionProps) => {
                     Clear All Data
                   </AlertDialogTitle>
                   <AlertDialogDescription>
-                    This will reset your fiNotes app to its initial state. All your financial data, budgets, goals, and settings will be permanently deleted.
+                    This will reset your fiNotes app to its initial state. All your financial data, budgets, goals, assets, liabilities and settings will be permanently deleted.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <div className="pt-2 text-left">
@@ -48,7 +75,7 @@ const DataSection = ({ handleClearAllData }: DataSectionProps) => {
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
                   <AlertDialogAction 
-                    onClick={handleClearAllData}
+                    onClick={handleClearData}
                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                   >
                     <Delete size={16} className="mr-1" /> Clear All Data
