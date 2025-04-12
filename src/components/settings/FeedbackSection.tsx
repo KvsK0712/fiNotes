@@ -1,13 +1,14 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { MessageSquare } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const FeedbackSection = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -16,6 +17,7 @@ const FeedbackSection = () => {
   const [description, setDescription] = useState("");
   const { toast } = useToast();
   const { userData } = useAuth();
+  const isMobile = useIsMobile();
   
   // Populate form with user data when opening the dialog
   const handleOpenDialog = () => {
@@ -40,7 +42,7 @@ const FeedbackSection = () => {
     // Create mailto link with form data
     const subject = encodeURIComponent("fiNotes App Feedback/Issue Report");
     const body = encodeURIComponent(
-      `Name: ${name}\nEmail: ${email}\n\nDescription:\n${description}\n\nBrowser Info: ${navigator.userAgent}\nTimestamp: ${new Date().toString()}`
+      `Name: ${name}\nEmail: ${email}\n\nDescription:\n${description}\n\nDevice Info: ${navigator.userAgent}\nPlatform: ${isMobile ? 'Mobile' : 'Desktop'}\nTimestamp: ${new Date().toString()}`
     );
     
     // Use mailto link to open email client
@@ -79,6 +81,9 @@ const FeedbackSection = () => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Send Feedback or Report Issue</DialogTitle>
+            <DialogDescription>
+              Help us improve the fiNotes app with your feedback
+            </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4 py-4">

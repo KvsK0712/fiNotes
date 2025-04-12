@@ -3,8 +3,11 @@ import PageLayout from "@/components/layout/PageLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Calculator, CreditCard, Coins, ArrowUpRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const CalculatorsPage = () => {
+  const isMobile = useIsMobile();
+  
   const calculators = [
     {
       id: 'emi',
@@ -43,7 +46,7 @@ const CalculatorsPage = () => {
           {calculators.map((calculator) => (
             <Link key={calculator.id} to={`/calculators/${calculator.id}`}>
               <Card className="finance-card card-hover cursor-pointer">
-                <CardContent className="p-4 flex items-center">
+                <CardContent className={`p-4 flex items-center ${isMobile ? 'touch-manipulation' : ''}`}>
                   <div className={`flex items-center justify-center rounded-full ${calculator.color} p-3 mr-4`}>
                     <calculator.icon size={20} />
                   </div>

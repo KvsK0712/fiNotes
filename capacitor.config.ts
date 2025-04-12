@@ -9,6 +9,15 @@ const config: CapacitorConfig = {
     url: "https://e6b71804-8337-4de5-8389-8cbd1bdc324e.lovableproject.com?forceHideBadge=true",
     cleartext: true
   },
+  android: {
+    buildOptions: {
+      keystorePath: 'android.keystore',
+      keystoreAlias: 'fiNotes',
+    }
+  },
+  ios: {
+    scheme: 'fiNotes'
+  },
   bundledWebRuntime: false
 };
 
