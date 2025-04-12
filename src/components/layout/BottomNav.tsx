@@ -7,9 +7,10 @@ const BottomNav = () => {
   
   const navItems = [
     { name: "Home", path: "/", icon: Home },
-    { name: "Calculator", path: "/calculators", icon: Calculator },
     { name: "Tracker", path: "/tracker", icon: Wallet },
+    { name: "Calculator", path: "/calculators", icon: Calculator },
     { name: "Assets", path: "/assets", icon: BarChart3 },
+    { name: "Learn", path: "/learn", icon: BookOpen },
     { name: "Settings", path: "/settings", icon: Settings },
   ];
 
