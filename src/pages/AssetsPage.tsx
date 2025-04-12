@@ -73,34 +73,38 @@ const AssetsPage = () => {
   // Update net worth history when assets or liabilities change
   useEffect(() => {
     if (assets.length > 0 || liabilities.length > 0) {
-      const today = format(new Date(), "yyyy-MM-dd");
+      const assetsByDate = new Map<string, number>();
+      const liabilitiesByDate = new Map<string, number>();
       
-      // Check if we already have an entry for today
-      const existingEntryIndex = netWorthHistory.findIndex(
-        snapshot => snapshot.date === today
-      );
+      const allDates = new Set<string>();
       
-      const newSnapshot: NetWorthSnapshot = {
-        date: today,
-        assets: totalAssets,
-        liabilities: totalLiabilities,
-        netWorth
-      };
+      assets.forEach(asset => {
+        const date = asset.date.split('T')[0];
+        allDates.add(date);
+        assetsByDate.set(date, (assetsByDate.get(date) || 0) + asset.value);
+      });
       
-      let updatedHistory;
+      liabilities.forEach(liability => {
+        const date = liability.date.split('T')[0];
+        allDates.add(date);
+        liabilitiesByDate.set(date, (liabilitiesByDate.get(date) || 0) + liability.value);
+      });
       
-      if (existingEntryIndex >= 0) {
-        // Update existing entry
-        updatedHistory = [...netWorthHistory];
-        updatedHistory[existingEntryIndex] = newSnapshot;
-      } else {
-        // Add new entry
-        updatedHistory = [...netWorthHistory, newSnapshot];
-      }
+      const sortedDates = Array.from(allDates).sort();
       
-      // Save to state and localStorage
-      setNetWorthHistory(updatedHistory);
-      localStorage.setItem(NET_WORTH_HISTORY_KEY, JSON.stringify(updatedHistory));
+      const newSnapshots: NetWorthSnapshot[] = sortedDates.map(date => {
+        const assetValue = assetsByDate.get(date) || 0;
+        const liabilityValue = liabilitiesByDate.get(date) || 0;
+        return {
+          date,
+          assets: assetValue,
+          liabilities: liabilityValue,
+          netWorth: assetValue - liabilityValue
+        };
+      });
+      
+      setNetWorthHistory(newSnapshots);
+      localStorage.setItem(NET_WORTH_HISTORY_KEY, JSON.stringify(newSnapshots));
     }
   }, [assets, liabilities]);
 
@@ -117,10 +121,8 @@ const AssetsPage = () => {
   // Asset handlers
   const handleSaveAsset = (asset: Asset) => {
     if (editingAsset) {
-      // Update existing asset
       setAssets(assets.map(a => a.id === asset.id ? asset : a));
     } else {
-      // Add new asset
       setAssets([...assets, asset]);
     }
     setAssetDialog(false);
@@ -135,10 +137,8 @@ const AssetsPage = () => {
   // Liability handlers
   const handleSaveLiability = (liability: Liability) => {
     if (editingLiability) {
-      // Update existing liability
       setLiabilities(liabilities.map(l => l.id === liability.id ? liability : l));
     } else {
-      // Add new liability
       setLiabilities([...liabilities, liability]);
     }
     setLiabilityDialog(false);
@@ -158,7 +158,6 @@ const AssetsPage = () => {
       try {
         toast.info("Generating PDF report...");
         
-        // Use html2canvas to capture the element as an image
         const canvas = await html2canvas(reportElement, {
           scale: 2,
           logging: false,
@@ -167,14 +166,13 @@ const AssetsPage = () => {
         
         const imageData = canvas.toDataURL('image/png');
         
-        // Create PDF
         const pdf = new jsPDF({
           orientation: 'portrait',
           unit: 'mm',
           format: 'a4'
         });
         
-        const imgWidth = 210; // A4 width in mm
+        const imgWidth = 210;
         const imgHeight = canvas.height * imgWidth / canvas.width;
         
         pdf.addImage(imageData, 'PNG', 0, 0, imgWidth, imgHeight);

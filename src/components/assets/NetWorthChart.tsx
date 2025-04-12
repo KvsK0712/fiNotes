@@ -12,7 +12,7 @@ import {
   Legend 
 } from "recharts";
 import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
-import { format, parseISO, subMonths } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { NetWorthSnapshot } from "./AssetTypes";
 import { useAuth } from "@/context/AuthContext";
 
@@ -83,8 +83,11 @@ const NetWorthChart: React.FC<NetWorthChartProps> = ({ snapshots }) => {
       </CardHeader>
       <CardContent>
         {!hasEnoughData ? (
-          <div className="h-80 flex items-center justify-center text-gray-500">
-            Add multiple assets or liabilities over time to see your net worth trend.
+          <div className="h-80 flex items-center justify-center text-gray-500 flex-col">
+            <p>Add multiple assets or liabilities over time to see your net worth trend.</p>
+            <p className="text-sm mt-2">
+              To see the chart, add assets/liabilities with <strong>different dates</strong> to track your net worth changes.
+            </p>
           </div>
         ) : (
           <ChartContainer config={chartConfig} className="h-80">
