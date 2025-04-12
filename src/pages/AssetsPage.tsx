@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import PageLayout from "@/components/layout/PageLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -23,7 +22,6 @@ import LiabilitiesList from "@/components/assets/LiabilitiesList";
 import NetWorthChart from "@/components/assets/NetWorthChart";
 import AssetsPieChart from "@/components/assets/AssetsPieChart";
 import LiabilitiesPieChart from "@/components/assets/LiabilitiesPieChart";
-import WorthInsights from "@/components/assets/WorthInsights";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
@@ -104,7 +102,7 @@ const AssetsPage = () => {
       setNetWorthHistory(updatedHistory);
       localStorage.setItem(NET_WORTH_HISTORY_KEY, JSON.stringify(updatedHistory));
     }
-  }, [assets, liabilities, totalAssets, totalLiabilities, netWorth, netWorthHistory]);
+  }, [assets, liabilities]);
 
   // Save assets to localStorage when they change
   useEffect(() => {
@@ -214,17 +212,6 @@ const AssetsPage = () => {
             </div>
           </CardContent>
         </Card>
-        
-        {/* Financial Insights */}
-        {(assets.length > 0 || liabilities.length > 0) && (
-          <div className="mb-6">
-            <WorthInsights 
-              assets={assets} 
-              liabilities={liabilities} 
-              netWorthHistory={netWorthHistory} 
-            />
-          </div>
-        )}
         
         {/* Net Worth Chart */}
         <div className="mb-6">

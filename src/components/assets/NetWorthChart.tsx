@@ -42,28 +42,17 @@ const NetWorthChart: React.FC<NetWorthChartProps> = ({ snapshots }) => {
   const calculateGrowth = () => {
     if (snapshots.length <= 1) return null;
     
-    const lastIndex = snapshots.length - 1;
-    const currentNetWorth = snapshots[lastIndex].netWorth;
-    let previousNetWorth;
+    // Get first and last snapshot for comparison
+    const firstSnapshot = sortedSnapshots[0];
+    const lastSnapshot = sortedSnapshots[sortedSnapshots.length - 1];
     
-    // Try to find a snapshot from 3 months ago
-    const threeMonthsAgo = subMonths(new Date(), 3);
-    const previousSnapshot = snapshots.find(s => 
-      new Date(s.date) <= threeMonthsAgo
-    );
+    if (firstSnapshot.netWorth === 0) return null;
     
-    // If we have data from 3 months ago, use that, otherwise use the first snapshot
-    previousNetWorth = previousSnapshot 
-      ? previousSnapshot.netWorth 
-      : snapshots[0].netWorth;
-    
-    if (previousNetWorth === 0) return null;
-    
-    const growthRate = ((currentNetWorth - previousNetWorth) / Math.abs(previousNetWorth)) * 100;
+    const growthRate = ((lastSnapshot.netWorth - firstSnapshot.netWorth) / Math.abs(firstSnapshot.netWorth)) * 100;
     return {
       rate: growthRate.toFixed(1),
       isPositive: growthRate >= 0,
-      amount: Math.abs(currentNetWorth - previousNetWorth)
+      amount: Math.abs(lastSnapshot.netWorth - firstSnapshot.netWorth)
     };
   };
   
