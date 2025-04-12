@@ -37,7 +37,7 @@ const CalculatorsPage = () => {
   ];
 
   return (
-    <PageLayout title="Financial Calculators" showBackButton>
+    <PageLayout title="Financial Calculators">
       <div className="finance-container animate-fade-in p-4">
         <div className="grid grid-cols-1 gap-4">
           {calculators.map((calculator) => (

@@ -40,7 +40,7 @@ const EMICalculator = () => {
   };
 
   return (
-    <PageLayout title="EMI Calculator">
+    <PageLayout title="EMI Calculator" showBackButton={true}>
       <div className="finance-container animate-fade-in">
         <Card className="mb-6">
           <CardContent className="p-6">

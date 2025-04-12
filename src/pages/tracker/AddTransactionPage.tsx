@@ -94,7 +94,7 @@ const AddTransactionPage = () => {
   };
 
   return (
-    <PageLayout title="Add Transaction">
+    <PageLayout title="Add Transaction" showBackButton={true}>
       <div className="finance-container animate-fade-in">
         <Card>
           <CardContent className="p-6">

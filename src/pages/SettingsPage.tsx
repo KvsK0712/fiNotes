@@ -10,6 +10,7 @@ import NotificationSection from "@/components/settings/NotificationSection";
 import AppPreferencesSection from "@/components/settings/AppPreferencesSection";
 import DataSection from "@/components/settings/DataSection";
 import VersionInfo from "@/components/settings/VersionInfo";
+import FeedbackSection from "@/components/settings/FeedbackSection";
 
 // Define storage keys for various user data
 const STORAGE_KEYS = {
@@ -118,6 +119,7 @@ const SettingsPage = () => {
         <AppearanceSection darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
         <NotificationSection notifications={notifications} toggleNotifications={toggleNotifications} />
         <AppPreferencesSection />
+        <FeedbackSection />
         <DataSection handleClearAllData={handleClearAllData} />
         <VersionInfo />
       </div>
