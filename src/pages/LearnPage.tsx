@@ -1,11 +1,24 @@
 
+import { useEffect, useState } from "react";
 import PageLayout from "@/components/layout/PageLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "react-router-dom";
 import { BookOpen, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { 
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 const LearnPage = () => {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filteredCategories, setFilteredCategories] = useState<any[]>([]);
+  const [showDialog, setShowDialog] = useState(true);
+  
   const categories = [
     {
       id: "loans",
@@ -51,15 +64,54 @@ const LearnPage = () => {
     readTime: 5,
   };
 
+  useEffect(() => {
+    // Initial filtering on component mount
+    setFilteredCategories(categories);
+  }, []);
+
+  useEffect(() => {
+    // Filter categories whenever search query changes
+    if (searchQuery.trim() === "") {
+      setFilteredCategories(categories);
+    } else {
+      const filtered = categories.filter((category) => 
+        category.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        category.description.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setFilteredCategories(filtered);
+    }
+  }, [searchQuery]);
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+
   return (
     <PageLayout title="Learn Finance">
       <div className="finance-container animate-fade-in">
+        {/* Development Dialog */}
+        <Dialog open={showDialog} onOpenChange={setShowDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Feature Under Development</DialogTitle>
+              <DialogDescription>
+                The Learn section is currently under development. More financial education resources will be available soon!
+              </DialogDescription>
+            </DialogHeader>
+            <div className="mt-4 flex justify-end">
+              <Button onClick={() => setShowDialog(false)}>Continue to Preview</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+        
         {/* Search */}
         <div className="relative mb-6">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
           <Input 
             placeholder="Search topics..." 
             className="pl-9"
+            value={searchQuery}
+            onChange={handleSearch}
           />
         </div>
 
@@ -81,30 +133,36 @@ const LearnPage = () => {
           </Card>
         </div>
 
-        {/* Categories */}
+        {/* Categories - Now filtered */}
         <div>
           <h2 className="text-lg font-medium mb-3">Browse by Category</h2>
-          <div className="grid grid-cols-1 gap-4">
-            {categories.map((category) => (
-              <Link key={category.id} to={`/learn/category/${category.id}`}>
-                <Card className="card-hover cursor-pointer">
-                  <CardContent className="p-4">
-                    <div className="flex justify-between">
-                      <div>
-                        <h3 className="font-medium">{category.title}</h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                          {category.description}
-                        </p>
+          {filteredCategories.length === 0 ? (
+            <div className="text-center py-10 text-gray-500">
+              No categories match your search.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-4">
+              {filteredCategories.map((category) => (
+                <Link key={category.id} to={`/learn/category/${category.id}`}>
+                  <Card className="card-hover cursor-pointer">
+                    <CardContent className="p-4">
+                      <div className="flex justify-between">
+                        <div>
+                          <h3 className="font-medium">{category.title}</h3>
+                          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                            {category.description}
+                          </p>
+                        </div>
+                        <div className="text-sm text-gray-400 ml-4">
+                          {category.articleCount} articles
+                        </div>
                       </div>
-                      <div className="text-sm text-gray-400 ml-4">
-                        {category.articleCount} articles
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
-          </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </PageLayout>
