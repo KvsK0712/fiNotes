@@ -76,3 +76,7 @@ To add a custom domain:
 - Make sure to keep your dependencies up to date.
 - Customize components in the `/components` folder to fit your branding.
 - Tailor the `theme.ts` or Tailwind config for a unique visual identity.
+
+
+## Author
+- Venkata Sai Kumar Kuchipudi
