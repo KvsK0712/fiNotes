@@ -1,3 +1,4 @@
+
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
 
 @tailwind base;
@@ -93,10 +94,14 @@
 
   body {
     @apply bg-background text-foreground font-roboto;
+    /* Add safe area padding for iOS */
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
   }
 
   .finance-container {
     @apply px-4 py-6 md:px-8 md:py-8;
+    /* Additional bottom padding to avoid overlapping with bottom nav */
+    padding-bottom: calc(env(safe-area-inset-bottom) + theme('spacing.16'));
   }
 
   .card-hover {
@@ -107,3 +112,15 @@
     @apply bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700;
   }
 }
+
+/* Additional safe area utilities */
+@supports(padding: max(0px)) {
+  .safe-top {
+    padding-top: max(env(safe-area-inset-top), 1rem);
+  }
+  
+  .safe-bottom {
+    padding-bottom: max(env(safe-area-inset-bottom), 1rem);
+  }
+}
+

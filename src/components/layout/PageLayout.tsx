@@ -25,7 +25,7 @@ const PageLayout = ({
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-slate-900">
       {title && (
-        <div className="p-4 flex items-center justify-center bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-gray-700 relative">
+        <div className="p-4 flex items-center justify-center bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-gray-700 relative safe-top">
           {showBackButton && (
             <button 
               onClick={() => navigate(-1)} 
@@ -38,7 +38,7 @@ const PageLayout = ({
           <h1 className="text-lg font-medium">{title}</h1>
         </div>
       )}
-      <main className={cn("flex-1 pb-16", className)}>
+      <main className={cn("flex-1 pb-16 safe-bottom", className)}>
         {children}
       </main>
       {!hideNav && <BottomNav />}
