@@ -95,7 +95,7 @@ const AddTransactionPage = () => {
 
   return (
     <PageLayout title="Add Transaction" showBackButton={true}>
-      <div className="finance-container animate-fade-in">
+      <div className="finance-container">
         <Card>
           <CardContent className="p-6">
             <form onSubmit={handleSubmit} className="space-y-4">

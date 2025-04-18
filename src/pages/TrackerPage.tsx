@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import PageLayout from "@/components/layout/PageLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -25,7 +24,6 @@ const TrackerPage = () => {
   const { userData } = useAuth();
   const currencySymbol = userData?.currency || "$";
 
-  // Load transactions from localStorage on component mount
   useEffect(() => {
     const savedTransactions = localStorage.getItem(STORAGE_KEY);
     if (savedTransactions) {
@@ -34,7 +32,6 @@ const TrackerPage = () => {
     }
   }, []);
 
-  // Save transactions to localStorage whenever they change
   useEffect(() => {
     if (!isFirstVisit || transactions.length > 0) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(transactions));
@@ -51,8 +48,7 @@ const TrackerPage = () => {
 
   return (
     <PageLayout title="Finance Tracker">
-      <div className="finance-container animate-fade-in">
-        {/* Summary Cards */}
+      <div className="finance-container">
         <div className="grid grid-cols-3 gap-4 mb-6">
           <Card className="finance-card">
             <CardContent className="p-3">
@@ -76,7 +72,6 @@ const TrackerPage = () => {
           </Card>
         </div>
 
-        {/* Empty state message */}
         {transactions.length === 0 && (
           <Card className="mb-6">
             <CardContent className="p-6 text-center">
@@ -94,7 +89,6 @@ const TrackerPage = () => {
           </Card>
         )}
 
-        {/* Transactions List - only show if there are transactions */}
         {transactions.length > 0 && (
           <Tabs defaultValue="all">
             <div className="flex items-center justify-between mb-4">
