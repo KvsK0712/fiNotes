@@ -38,11 +38,17 @@ interface Liability {
 const STORAGE_KEY = "fi_notes_transactions";
 const ASSETS_STORAGE_KEY = "fi_notes_assets";
 const LIABILITIES_STORAGE_KEY = "fi_notes_liabilities";
+const DARK_MODE = 'fi_notes-darkMode';
+const NOTIFICATIONS = 'fi_notes-notifications';
+
+
 
 const HomePage = () => {
   const { userData } = useAuth();
   const [balance, setBalance] = useState<number>(0);
   const [netWorth, setNetWorth] = useState<number>(0);
+  const [darkMode, setDarkMode] = useState(false);
+  const [notifications, setNotifications] = useState(false);
   
   useEffect(() => {
     // Calculate balance from stored transactions
@@ -81,6 +87,19 @@ const HomePage = () => {
     }
     
     setNetWorth(totalAssets - totalLiabilities);
+
+    // Load settings from localStorage with default values (OFF)
+    const savedDarkMode = localStorage.getItem(DARK_MODE);
+    const savedNotifications = localStorage.getItem(NOTIFICATIONS);
+    
+    setDarkMode(savedDarkMode === 'true');
+    setNotifications(savedNotifications === 'true');
+    
+    if (savedDarkMode === 'true') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
   }, []);
 
   // Get currency symbol from user data
