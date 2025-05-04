@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
+import { useEffect } from 'react';
 
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
@@ -28,14 +29,16 @@ import BottomSafeArea from "./components/safe_area/BottomSafeArea";
 
 const queryClient = new QueryClient();
 
+
 const App = () => (
+
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <AuthProvider>
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <div className="main-container safe-area app-wrapper">
+          <div className="main-container safe-area app-wrapper w-screen overflow-x-hidden min-h-screen bg-white">
           <StatusBarBackground backgroundColor="#ffffff" />
             <Routes>
               <Route path="/login" element={<LoginPage />} />
@@ -61,6 +64,7 @@ const App = () => (
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
+
 );
 
 

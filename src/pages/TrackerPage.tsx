@@ -97,27 +97,28 @@ const TrackerPage = () => {
         {/* Transactions List - only show if there are transactions */}
         {transactions.length > 0 && (
           <Tabs defaultValue="all">
-            <div className="flex items-center justify-between mb-4">
-              <TabsList>
-                <TabsTrigger value="all">All</TabsTrigger>
-                <TabsTrigger value="income">Income</TabsTrigger>
-                <TabsTrigger value="expense">Expense</TabsTrigger>
-              </TabsList>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
               
-              <div className="flex gap-2">
+              <div className="flex flex-row justify-center items-center gap-2">
                 <Link to="/tracker/add?type=expense">
                   <Button size="sm" variant="destructive" className="gap-1">
                     <ArrowDown size={16} />
-                    Expense
+                    Add Expense
                   </Button>
                 </Link>
                 <Link to="/tracker/add?type=income">
                   <Button size="sm" variant="outline" className="gap-1 bg-green-600 text-white hover:bg-green-700">
                     <ArrowUp size={16} />
-                    Income
+                    Add Income
                   </Button>
                 </Link>
               </div>
+
+              <TabsList>
+                <TabsTrigger value="all">All</TabsTrigger>
+                <TabsTrigger value="income">Income</TabsTrigger>
+                <TabsTrigger value="expense">Expense</TabsTrigger>
+              </TabsList>
             </div>
             
             <TabsContent value="all" className="mt-0">

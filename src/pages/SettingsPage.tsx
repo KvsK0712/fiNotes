@@ -119,7 +119,7 @@ const SettingsPage = () => {
         <AppearanceSection darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
         <NotificationSection notifications={notifications} toggleNotifications={toggleNotifications} />
         <AppPreferencesSection />
-        <FeedbackSection />
+        {/* <FeedbackSection /> */}
         <DataSection handleClearAllData={handleClearAllData} />
         <VersionInfo />
       </div>

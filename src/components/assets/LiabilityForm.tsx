@@ -174,7 +174,7 @@ const LiabilityForm: React.FC<LiabilityFormProps> = ({ onSave, onCancel, existin
           )}
         />
 
-        <div className="flex justify-end space-x-2">
+        <div className="w-full resize-none overflow-hidden break-words px-3 py-2 border rounded focus:outline-none">
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
           </Button>

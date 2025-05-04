@@ -46,7 +46,7 @@ const TRANSACTIONS_STORAGE_KEY = "fi_notes_transactions";
 
 // Expense categories
 const expenseCategories = [
-  "Housing", "Food", "Transport", "Utilities", "Entertainment", 
+  "Housing", "Food", "Transport", "Utilities", "Entertainment",
   "Healthcare", "Education", "Shopping", "Personal Care", "Other"
 ];
 
@@ -54,26 +54,23 @@ const BudgetPage = () => {
   const { userData } = useAuth();
   const currencySymbol = userData?.currency || "$";
 
-  // Current month in YYYY-MM format
   const currentMonth = new Date().toISOString().slice(0, 7);
-  
+
   const [monthlyBudgets, setMonthlyBudgets] = useState<MonthlyBudget>({});
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [newCategory, setNewCategory] = useState<string>("");
   const [newAmount, setNewAmount] = useState<string>("");
   const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
-  
-  // Load budgets and transactions from localStorage
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
   useEffect(() => {
     const savedBudgets = localStorage.getItem(BUDGETS_STORAGE_KEY);
     const savedTransactions = localStorage.getItem(TRANSACTIONS_STORAGE_KEY);
-    
+
     if (savedBudgets) {
       const parsedBudgets = JSON.parse(savedBudgets);
       setMonthlyBudgets(parsedBudgets);
-      
-      // Get current month's budgets
       if (parsedBudgets[currentMonth]) {
         const currentBudgets: Budget[] = Object.entries(parsedBudgets[currentMonth]).map(
           ([category, amount]) => ({
@@ -84,104 +81,89 @@ const BudgetPage = () => {
         setBudgets(currentBudgets);
       }
     }
-    
+
     if (savedTransactions) {
       setTransactions(JSON.parse(savedTransactions));
     }
   }, [currentMonth]);
-  
-  // Add or update a budget
+
   const handleSaveBudget = () => {
     if (!newCategory || !newAmount || parseFloat(newAmount) <= 0) {
       toast.error("Please select a category and enter a valid amount");
       return;
     }
-    
+
     const amount = parseFloat(newAmount);
-    
-    // Check if we're editing or adding
+
     if (editingBudget) {
-      // Update existing budget
-      const updatedBudgets = budgets.map(budget => 
-        budget.category === editingBudget.category 
-          ? { ...budget, amount } 
+      const updatedBudgets = budgets.map(budget =>
+        budget.category === editingBudget.category
+          ? { ...budget, amount }
           : budget
       );
-      
       setBudgets(updatedBudgets);
     } else {
-      // Check if category already exists
       if (budgets.some(budget => budget.category === newCategory)) {
         toast.error("Budget for this category already exists");
         return;
       }
-      
-      // Add new budget
-      const newBudget: Budget = {
-        category: newCategory,
-        amount,
-      };
-      
+      const newBudget: Budget = { category: newCategory, amount };
       setBudgets([...budgets, newBudget]);
     }
-    
-    // Update in storage
+
     const updatedMonthlyBudgets = { ...monthlyBudgets };
     if (!updatedMonthlyBudgets[currentMonth]) {
       updatedMonthlyBudgets[currentMonth] = {};
     }
-    
+
     const categoryToUpdate = editingBudget ? editingBudget.category : newCategory;
     updatedMonthlyBudgets[currentMonth][categoryToUpdate] = amount;
-    
+
     setMonthlyBudgets(updatedMonthlyBudgets);
     localStorage.setItem(BUDGETS_STORAGE_KEY, JSON.stringify(updatedMonthlyBudgets));
-    
-    // Reset form
+
     setNewCategory("");
     setNewAmount("");
     setEditingBudget(null);
-    
+    setIsDialogOpen(false);
+
     toast.success(`Budget ${editingBudget ? "updated" : "added"} successfully`);
   };
-  
-  // Calculate spent amount for each category in the current month
+
   const calculateSpentAmount = (category: string): number => {
     const currentMonthStart = `${currentMonth}-01`;
     const nextMonth = new Date(currentMonth);
     nextMonth.setMonth(nextMonth.getMonth() + 1);
     const nextMonthStart = nextMonth.toISOString().slice(0, 8) + "01";
-    
+
     return transactions
       .filter(
-        t => 
-          t.type === "expense" && 
-          t.category === category && 
-          t.date >= currentMonthStart && 
+        t =>
+          t.type === "expense" &&
+          t.category === category &&
+          t.date >= currentMonthStart &&
           t.date < nextMonthStart
       )
       .reduce((sum, t) => sum + t.amount, 0);
   };
-  
-  // Get progress percentage
+
   const getProgressPercentage = (budget: Budget): number => {
     const spent = calculateSpentAmount(budget.category);
     return Math.min(Math.round((spent / budget.amount) * 100), 100);
   };
-  
-  // Get progress color
+
   const getProgressColor = (budget: Budget): string => {
     const percentage = getProgressPercentage(budget);
     if (percentage >= 100) return "bg-red-500";
     if (percentage >= 80) return "bg-yellow-500";
     return "bg-green-500";
   };
-  
-  // Handle edit budget
+
   const handleEditBudget = (budget: Budget) => {
     setEditingBudget(budget);
     setNewCategory(budget.category);
     setNewAmount(budget.amount.toString());
+    setIsDialogOpen(true);
   };
 
   return (
@@ -189,17 +171,23 @@ const BudgetPage = () => {
       <div className="finance-container animate-fade-in">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-medium">Monthly Budgets</h2>
-          <Dialog>
+
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="gap-1" onClick={() => {
-                setEditingBudget(null);
-                setNewCategory("");
-                setNewAmount("");
-              }}>
+              <Button
+                className="gap-1"
+                onClick={() => {
+                  setEditingBudget(null);
+                  setNewCategory("");
+                  setNewAmount("");
+                  setIsDialogOpen(true);
+                }}
+              >
                 <PlusCircle size={16} />
                 Add Budget
               </Button>
             </DialogTrigger>
+
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>{editingBudget ? "Edit" : "Add"} Budget</DialogTitle>
@@ -224,7 +212,7 @@ const BudgetPage = () => {
                     </Select>
                   )}
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="amount">Budget Amount ({currencySymbol})</Label>
                   <Input
@@ -237,10 +225,12 @@ const BudgetPage = () => {
                     placeholder="Enter amount"
                   />
                 </div>
-                
+
                 <div className="flex justify-end gap-2 pt-2">
                   <DialogClose asChild>
-                    <Button variant="outline">Cancel</Button>
+                    <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                      Cancel
+                    </Button>
                   </DialogClose>
                   <DialogClose asChild>
                     <Button onClick={handleSaveBudget}>Save</Button>
@@ -250,7 +240,7 @@ const BudgetPage = () => {
             </DialogContent>
           </Dialog>
         </div>
-        
+
         {budgets.length === 0 ? (
           <Card className="mb-4">
             <CardContent className="p-6 text-center">
@@ -266,7 +256,7 @@ const BudgetPage = () => {
               const spent = calculateSpentAmount(budget.category);
               const remaining = budget.amount - spent;
               const percentage = getProgressPercentage(budget);
-              
+
               return (
                 <Card key={budget.category} className="card-hover">
                   <CardContent className="p-4">
@@ -275,26 +265,24 @@ const BudgetPage = () => {
                         <h3 className="font-medium">{budget.category}</h3>
                         <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400">
                           <span>Budget: {currencySymbol}{budget.amount}</span>
-                          <span 
-                            className={remaining < 0 ? "text-red-500 font-medium" : ""}
-                          >
+                          <span className={remaining < 0 ? "text-red-500 font-medium" : ""}>
                             Remaining: {currencySymbol}{remaining.toFixed(2)}
                           </span>
                         </div>
                       </div>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         className="h-8 w-8"
                         onClick={() => handleEditBudget(budget)}
                       >
                         <Edit2 size={16} />
                       </Button>
                     </div>
-                    
+
                     <div className="mt-2">
-                      <Progress 
-                        value={percentage} 
+                      <Progress
+                        value={percentage}
                         className="h-2"
                         indicatorClassName={getProgressColor(budget)}
                       />

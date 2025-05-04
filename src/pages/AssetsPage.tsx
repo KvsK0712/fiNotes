@@ -188,7 +188,7 @@ const AssetsPage = () => {
 
   return (
     <PageLayout title="Assets & Liabilities">
-      <div className="px-4 pb-6">
+      <div className="w-full overflow-x-hidden min-h-screen bg-white px-4 pb-20">
         {/* Net Worth Summary Card */}
         <Card className="mb-6 bg-gradient-to-r from-blue-700 to-blue-900 text-white">
           <CardContent className="pt-6 pb-6">
@@ -218,20 +218,20 @@ const AssetsPage = () => {
         
         {/* Asset & Liability Distribution Charts */}
         {(assets.length > 0 || liabilities.length > 0) && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <AssetsPieChart assets={assets} />
             <LiabilitiesPieChart liabilities={liabilities} />
           </div>
         )}
         
         {/* Assets & Liabilities Management Tabs */}
-        <Tabs defaultValue="assets" className="mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <TabsList className="grid w-full max-w-xs grid-cols-2">
+        <Tabs defaultValue="assets" className="mb-4">
+          <div className="flex flex-col items-center gap-4 mb-4">
+            <TabsList className="grid w-full max-w-xs grid-cols-2 gap-2">
               <TabsTrigger value="assets">Assets</TabsTrigger>
               <TabsTrigger value="liabilities">Liabilities</TabsTrigger>
             </TabsList>
-            <Button 
+            {/* <Button 
               className="ml-auto" 
               size="sm" 
               variant="outline"
@@ -239,7 +239,8 @@ const AssetsPage = () => {
             >
               <Download size={16} className="mr-1" />
               Export
-            </Button>
+            </Button> */}
+
           </div>
           
           {/* Assets Tab */}
